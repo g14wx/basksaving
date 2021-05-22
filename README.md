@@ -2,6 +2,8 @@
 
 an app that let you manage your basket
 
+a simple app made with flutter, using sqfEntity as a lightweight ORM for sqlite db, bloc arquitecture, and luqid ui for presentation layer.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
