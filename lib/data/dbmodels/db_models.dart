@@ -89,6 +89,7 @@ const buyingListHasProducts = SqfEntityTable(
     primaryKeyType: PrimaryKeyType.integer_auto_incremental,
     fields: [
       SqfEntityField('why_need_it', DbType.text, defaultValue: ''),
+      SqfEntityField('already_buyed',DbType.bool, defaultValue: true),
       SqfEntityFieldRelationship(
         parentTable: product,
         deleteRule: DeleteRule.CASCADE,
@@ -149,13 +150,14 @@ tableName: 'buying_list',
     ]
 );
 
-const transaction = SqfEntityTable(
-  tableName: 'transaction',
+const transactions = SqfEntityTable(
+  modelName: 'Transactions',
+  tableName: 'transactions',
   primaryKeyName: 'id',
   primaryKeyType: PrimaryKeyType.integer_auto_incremental,
   useSoftDeleting: true,
   fields: [
-    SqfEntityField('capital', DbType.real, defaultValue: 0.0),
+    SqfEntityField('amount', DbType.real),
     SqfEntityFieldRelationship(
       parentTable: moneyProvider,
       deleteRule: DeleteRule.CASCADE,
@@ -173,8 +175,8 @@ const seqIdentity = SqfEntitySequence(
 // creating db model
 @SqfEntityBuilder(myDbModel)
 const myDbModel = SqfEntityModel(
-  databaseName: 'basksavingORM.db',
-  databaseTables: [user,category, product, moneyProvider, balancePerMonth, balancePerWeek, balancePerDay, transaction, buyingList, buyingListHasProducts],
+  databaseName: 'basksaving.db',
+  databaseTables: [user,category, product, moneyProvider, balancePerMonth, balancePerWeek, balancePerDay, buyingList, buyingListHasProducts, transactions],
   sequences: [seqIdentity],
-    bundledDatabasePath: 'assets/db/basksaving.db'
+    bundledDatabasePath: null
 );

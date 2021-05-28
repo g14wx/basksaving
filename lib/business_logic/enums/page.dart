@@ -1,4 +1,5 @@
 enum page{
   HOME,
-  SETUP
+  SETUP,
+  SETUPMONTH
 }

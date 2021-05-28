@@ -25,8 +25,7 @@ class InitialRouteBloc extends Bloc<InitialRouteEvent, InitialRouteState> {
     yield* event.map(
         initial: (value) async* {
           yield const Loading();
-          print("initialized");
-          final user = _repository.firstOrDefault();
+          final user = await _repository.firstOrDefault();
           if (user != null) {
             yield const InitialRouteState.resolved(page.HOME);
           } else{

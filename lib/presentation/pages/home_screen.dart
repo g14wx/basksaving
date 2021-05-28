@@ -16,8 +16,10 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bask Saving'),
+        title: const Icon(Icons.shopping_basket, color: Colors.black,size: 50,),
+        centerTitle: true,
         backgroundColor: Colors.white,
+        elevation: 10,
       ),
       body: PersistentTabView(
         context,

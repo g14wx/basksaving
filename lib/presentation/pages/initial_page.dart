@@ -25,14 +25,14 @@ class _InitialPageState extends State<InitialPage> {
           child: BlocListener<InitialRouteBloc, InitialRouteState>(
             listener: (context, state) {
               state.map(
-                  loading: (value) => const CircularProgressIndicator(),
+                  loading: (value) => null,
                   resolved: (value) {
                     switch(value.pageType){
                       case (page.HOME):
                         Navigator.of(context).pushNamed('/home');
                         break;
                       case (page.SETUP):
-                        Navigator.of(context).pushNamed('/setup');
+                        Navigator.of(context).pushReplacementNamed('/setup');
                         break;
                       default:
                         print('ruta no encontrada');

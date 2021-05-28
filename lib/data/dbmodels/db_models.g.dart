@@ -211,36 +211,6 @@ class TableBalance_per_day extends SqfEntityTableBase {
   }
 }
 
-// Transaction TABLE
-class TableTransaction extends SqfEntityTableBase {
-  TableTransaction() {
-    // declare properties of EntityTable
-    tableName = 'transaction';
-    primaryKeyName = 'id';
-    primaryKeyType = PrimaryKeyType.integer_auto_incremental;
-    useSoftDeleting = true;
-    // when useSoftDeleting is true, creates a field named 'isDeleted' on the table, and set to '1' this field when item deleted (does not hard delete)
-
-    // declare fields
-    fields = [
-      SqfEntityFieldBase('capital', DbType.real,
-          isUnique: false, isNotNull: false, isIndex: false),
-      SqfEntityFieldRelationshipBase(
-          TableMoneyProvider.getInstance, DeleteRule.CASCADE,
-          relationType: RelationType.ONE_TO_MANY,
-          fieldName: 'id_money_provider',
-          isUnique: false,
-          isNotNull: false,
-          isIndex: false),
-    ];
-    super.init();
-  }
-  static SqfEntityTableBase? _instance;
-  static SqfEntityTableBase get getInstance {
-    return _instance = _instance ?? TableTransaction();
-  }
-}
-
 // Buying_list TABLE
 class TableBuying_list extends SqfEntityTableBase {
   TableBuying_list() {
@@ -304,6 +274,11 @@ class TableBuying_list_has_product extends SqfEntityTableBase {
     fields = [
       SqfEntityFieldBase('why_need_it', DbType.text,
           defaultValue: '', isUnique: false, isNotNull: false, isIndex: false),
+      SqfEntityFieldBase('already_buyed', DbType.bool,
+          defaultValue: true,
+          isUnique: false,
+          isNotNull: false,
+          isIndex: false),
       SqfEntityFieldRelationshipBase(
           TableProduct.getInstance, DeleteRule.CASCADE,
           relationType: RelationType.ONE_TO_MANY,
@@ -324,6 +299,36 @@ class TableBuying_list_has_product extends SqfEntityTableBase {
   static SqfEntityTableBase? _instance;
   static SqfEntityTableBase get getInstance {
     return _instance = _instance ?? TableBuying_list_has_product();
+  }
+}
+
+// Transactions TABLE
+class TableTransactions extends SqfEntityTableBase {
+  TableTransactions() {
+    // declare properties of EntityTable
+    tableName = 'transactions';
+    primaryKeyName = 'id';
+    primaryKeyType = PrimaryKeyType.integer_auto_incremental;
+    useSoftDeleting = true;
+    // when useSoftDeleting is true, creates a field named 'isDeleted' on the table, and set to '1' this field when item deleted (does not hard delete)
+
+    // declare fields
+    fields = [
+      SqfEntityFieldBase('amount', DbType.real,
+          isUnique: false, isNotNull: false, isIndex: false),
+      SqfEntityFieldRelationshipBase(
+          TableMoneyProvider.getInstance, DeleteRule.CASCADE,
+          relationType: RelationType.ONE_TO_MANY,
+          fieldName: 'id_money_provider',
+          isUnique: false,
+          isNotNull: false,
+          isIndex: false),
+    ];
+    super.init();
+  }
+  static SqfEntityTableBase? _instance;
+  static SqfEntityTableBase get getInstance {
+    return _instance = _instance ?? TableTransactions();
   }
 }
 // END TABLES
@@ -362,9 +367,9 @@ class MyDbModel extends SqfEntityModelProvider {
       TableBalance_per_month.getInstance,
       TableBalance_per_week.getInstance,
       TableBalance_per_day.getInstance,
-      TableTransaction.getInstance,
       TableBuying_list.getInstance,
       TableBuying_list_has_product.getInstance,
+      TableTransactions.getInstance,
     ];
 
     sequences = [
@@ -3934,16 +3939,16 @@ class MoneyProvider {
 
 // COLLECTIONS & VIRTUALS (MoneyProvider)
   /// to load children of items to this field, use preload parameter. Ex: toList(preload:true) or toSingle(preload:true) or getById(preload:true)
-  /// You can also specify this object into certain preload fields!. Ex: toList(preload:true, preloadFields:['plTransactions', 'plField2'..]) or so on..
-  List<Transaction>? plTransactions;
+  /// You can also specify this object into certain preload fields!. Ex: toList(preload:true, preloadFields:['plTransactionses', 'plField2'..]) or so on..
+  List<Transactions>? plTransactionses;
 
-  /// get Transaction(s) filtered by id=id_money_provider
-  TransactionFilterBuilder? getTransactions(
+  /// get Transactions(s) filtered by id=id_money_provider
+  TransactionsFilterBuilder? getTransactionses(
       {List<String>? columnsToSelect, bool? getIsDeleted}) {
     if (id == null) {
       return null;
     }
-    return Transaction()
+    return Transactions()
         .select(columnsToSelect: columnsToSelect, getIsDeleted: getIsDeleted)
         .id_money_provider
         .equals(id)
@@ -4003,7 +4008,7 @@ class MoneyProvider {
 
 // COLLECTIONS (MoneyProvider)
     if (!forQuery) {
-      map['Transactions'] = await getTransactions()!.toMapList();
+      map['Transactionses'] = await getTransactionses()!.toMapList();
     }
 // END COLLECTIONS (MoneyProvider)
 
@@ -4075,12 +4080,12 @@ class MoneyProvider {
       // RELATIONSHIPS PRELOAD CHILD
       if (preload) {
         loadedFields = loadedFields ?? [];
-        if (/*!_loadedfields!.contains('money_provider.plTransactions') && */ (preloadFields ==
+        if (/*!_loadedfields!.contains('money_provider.plTransactionses') && */ (preloadFields ==
                 null ||
-            preloadFields.contains('plTransactions'))) {
-          /*_loadedfields!.add('money_provider.plTransactions'); */
-          obj.plTransactions = obj.plTransactions ??
-              await obj.getTransactions()!.toList(
+            preloadFields.contains('plTransactionses'))) {
+          /*_loadedfields!.add('money_provider.plTransactionses'); */
+          obj.plTransactionses = obj.plTransactionses ??
+              await obj.getTransactionses()!.toList(
                   preload: preload,
                   preloadFields: preloadFields,
                   loadParents: false /*, loadedFields:_loadedFields*/);
@@ -4125,12 +4130,12 @@ class MoneyProvider {
       // RELATIONSHIPS PRELOAD CHILD
       if (preload) {
         loadedFields = loadedFields ?? [];
-        if (/*!_loadedfields!.contains('money_provider.plTransactions') && */ (preloadFields ==
+        if (/*!_loadedfields!.contains('money_provider.plTransactionses') && */ (preloadFields ==
                 null ||
-            preloadFields.contains('plTransactions'))) {
-          /*_loadedfields!.add('money_provider.plTransactions'); */
-          obj.plTransactions = obj.plTransactions ??
-              await obj.getTransactions()!.toList(
+            preloadFields.contains('plTransactionses'))) {
+          /*_loadedfields!.add('money_provider.plTransactionses'); */
+          obj.plTransactionses = obj.plTransactionses ??
+              await obj.getTransactionses()!.toList(
                   preload: preload,
                   preloadFields: preloadFields,
                   loadParents: false /*, loadedFields:_loadedFields*/);
@@ -4235,7 +4240,7 @@ class MoneyProvider {
     print('SQFENTITIY: delete MoneyProvider invoked (id=$id)');
     var result = BoolResult(success: false);
     {
-      result = await Transaction()
+      result = await Transactions()
           .select()
           .id_money_provider
           .equals(id)
@@ -4262,7 +4267,7 @@ class MoneyProvider {
     print('SQFENTITIY: recover MoneyProvider invoked (id=$id)');
     var result = BoolResult(success: false);
     if (recoverChilds) {
-      result = await Transaction()
+      result = await Transactions()
           .select(getIsDeleted: true)
           .isDeleted
           .equals(true)
@@ -4840,16 +4845,16 @@ class MoneyProviderFilterBuilder extends SearchCriteria {
   Future<BoolResult> delete([bool hardDelete = false]) async {
     _buildParameters();
     var r = BoolResult(success: false);
-    // Delete sub records where in (Transaction) according to DeleteRule.CASCADE
-    final idListTransactionBYid_money_provider = toListPrimaryKeySQL(false);
-    final resTransactionBYid_money_provider = await Transaction()
+    // Delete sub records where in (Transactions) according to DeleteRule.CASCADE
+    final idListTransactionsBYid_money_provider = toListPrimaryKeySQL(false);
+    final resTransactionsBYid_money_provider = await Transactions()
         .select()
         .where(
-            'id_money_provider IN (${idListTransactionBYid_money_provider['sql']})',
-            parameterValue: idListTransactionBYid_money_provider['args'])
+            'id_money_provider IN (${idListTransactionsBYid_money_provider['sql']})',
+            parameterValue: idListTransactionsBYid_money_provider['args'])
         .delete(hardDelete);
-    if (!resTransactionBYid_money_provider.success) {
-      return resTransactionBYid_money_provider;
+    if (!resTransactionsBYid_money_provider.success) {
+      return resTransactionsBYid_money_provider;
     }
 
     if (MoneyProvider._softDeleteActivated && !hardDelete) {
@@ -4865,16 +4870,16 @@ class MoneyProviderFilterBuilder extends SearchCriteria {
     _getIsDeleted = true;
     _buildParameters();
     print('SQFENTITIY: recover MoneyProvider bulk invoked');
-    // Recover sub records where in (Transaction) according to DeleteRule.CASCADE
-    final idListTransactionBYid_money_provider = toListPrimaryKeySQL(false);
-    final resTransactionBYid_money_provider = await Transaction()
+    // Recover sub records where in (Transactions) according to DeleteRule.CASCADE
+    final idListTransactionsBYid_money_provider = toListPrimaryKeySQL(false);
+    final resTransactionsBYid_money_provider = await Transactions()
         .select()
         .where(
-            'id_money_provider IN (${idListTransactionBYid_money_provider['sql']})',
-            parameterValue: idListTransactionBYid_money_provider['args'])
+            'id_money_provider IN (${idListTransactionsBYid_money_provider['sql']})',
+            parameterValue: idListTransactionsBYid_money_provider['args'])
         .update({'isDeleted': 0});
-    if (!resTransactionBYid_money_provider.success) {
-      return resTransactionBYid_money_provider;
+    if (!resTransactionsBYid_money_provider.success) {
+      return resTransactionsBYid_money_provider;
     }
     return _obj!._mnMoneyProvider.updateBatch(qparams, {'isDeleted': 0});
   }
@@ -4924,12 +4929,12 @@ class MoneyProviderFilterBuilder extends SearchCriteria {
       // RELATIONSHIPS PRELOAD CHILD
       if (preload) {
         loadedFields = loadedFields ?? [];
-        if (/*!_loadedfields!.contains('money_provider.plTransactions') && */ (preloadFields ==
+        if (/*!_loadedfields!.contains('money_provider.plTransactionses') && */ (preloadFields ==
                 null ||
-            preloadFields.contains('plTransactions'))) {
-          /*_loadedfields!.add('money_provider.plTransactions'); */
-          obj.plTransactions = obj.plTransactions ??
-              await obj.getTransactions()!.toList(
+            preloadFields.contains('plTransactionses'))) {
+          /*_loadedfields!.add('money_provider.plTransactionses'); */
+          obj.plTransactionses = obj.plTransactionses ??
+              await obj.getTransactionses()!.toList(
                   preload: preload,
                   preloadFields: preloadFields,
                   loadParents: false /*, loadedFields:_loadedFields*/);
@@ -9024,1187 +9029,6 @@ class Balance_per_dayManager extends SqfEntityProvider {
 }
 
 //endregion Balance_per_dayManager
-// region Transaction
-class Transaction {
-  Transaction({this.id, this.capital, this.id_money_provider, this.isDeleted}) {
-    _setDefaultValues();
-  }
-  Transaction.withFields(this.capital, this.id_money_provider, this.isDeleted) {
-    _setDefaultValues();
-  }
-  Transaction.withId(
-      this.id, this.capital, this.id_money_provider, this.isDeleted) {
-    _setDefaultValues();
-  }
-  // fromMap v2.0
-  Transaction.fromMap(Map<String, dynamic> o, {bool setDefaultValues = true}) {
-    if (setDefaultValues) {
-      _setDefaultValues();
-    }
-    id = int.tryParse(o['id'].toString());
-    if (o['capital'] != null) {
-      capital = double.tryParse(o['capital'].toString());
-    }
-    id_money_provider = int.tryParse(o['id_money_provider'].toString());
-
-    isDeleted = o['isDeleted'] != null
-        ? o['isDeleted'] == 1 || o['isDeleted'] == true
-        : null;
-
-    // RELATIONSHIPS FromMAP
-    plMoneyProvider = o['moneyProvider'] != null
-        ? MoneyProvider.fromMap(o['moneyProvider'] as Map<String, dynamic>)
-        : null;
-    // END RELATIONSHIPS FromMAP
-  }
-  // FIELDS (Transaction)
-  int? id;
-  double? capital;
-  int? id_money_provider;
-  bool? isDeleted;
-
-  BoolResult? saveResult;
-  // end FIELDS (Transaction)
-
-// RELATIONSHIPS (Transaction)
-  /// to load parent of items to this field, use preload parameter ex: toList(preload:true) or toSingle(preload:true) or getById(preload:true)
-  /// You can also specify this object into certain preload fields!. Ex: toList(preload:true, preloadFields:['plMoneyProvider', 'plField2'..]) or so on..
-  MoneyProvider? plMoneyProvider;
-
-  /// get MoneyProvider By Id_money_provider
-  Future<MoneyProvider?> getMoneyProvider(
-      {bool loadParents = false, List<String>? loadedFields}) async {
-    final _obj = await MoneyProvider().getById(id_money_provider,
-        loadParents: loadParents, loadedFields: loadedFields);
-    return _obj;
-  }
-  // END RELATIONSHIPS (Transaction)
-
-  static const bool _softDeleteActivated = true;
-  TransactionManager? __mnTransaction;
-
-  TransactionManager get _mnTransaction {
-    return __mnTransaction = __mnTransaction ?? TransactionManager();
-  }
-
-  // METHODS
-  Map<String, dynamic> toMap(
-      {bool forQuery = false, bool forJson = false, bool forView = false}) {
-    final map = <String, dynamic>{};
-    if (id != null) {
-      map['id'] = id;
-    }
-    if (capital != null) {
-      map['capital'] = capital;
-    }
-
-    if (id_money_provider != null) {
-      map['id_money_provider'] = forView
-          ? plMoneyProvider == null
-              ? id_money_provider
-              : plMoneyProvider!.title
-          : id_money_provider;
-    }
-
-    if (isDeleted != null) {
-      map['isDeleted'] = forQuery ? (isDeleted! ? 1 : 0) : isDeleted;
-    }
-
-    return map;
-  }
-
-  Future<Map<String, dynamic>> toMapWithChildren(
-      [bool forQuery = false,
-      bool forJson = false,
-      bool forView = false]) async {
-    final map = <String, dynamic>{};
-    if (id != null) {
-      map['id'] = id;
-    }
-    if (capital != null) {
-      map['capital'] = capital;
-    }
-
-    if (id_money_provider != null) {
-      map['id_money_provider'] = forView
-          ? plMoneyProvider == null
-              ? id_money_provider
-              : plMoneyProvider!.title
-          : id_money_provider;
-    }
-
-    if (isDeleted != null) {
-      map['isDeleted'] = forQuery ? (isDeleted! ? 1 : 0) : isDeleted;
-    }
-
-    return map;
-  }
-
-  /// This method returns Json String [Transaction]
-  String toJson() {
-    return json.encode(toMap(forJson: true));
-  }
-
-  /// This method returns Json String [Transaction]
-  Future<String> toJsonWithChilds() async {
-    return json.encode(await toMapWithChildren(false, true));
-  }
-
-  List<dynamic> toArgs() {
-    return [capital, id_money_provider, isDeleted];
-  }
-
-  List<dynamic> toArgsWithIds() {
-    return [id, capital, id_money_provider, isDeleted];
-  }
-
-  static Future<List<Transaction>?> fromWebUrl(Uri uri,
-      {Map<String, String>? headers}) async {
-    try {
-      final response = await http.get(uri, headers: headers);
-      return await fromJson(response.body);
-    } catch (e) {
-      print(
-          'SQFENTITY ERROR Transaction.fromWebUrl: ErrorMessage: ${e.toString()}');
-      return null;
-    }
-  }
-
-  Future<http.Response> postUrl(Uri uri, {Map<String, String>? headers}) {
-    return http.post(uri, headers: headers, body: toJson());
-  }
-
-  static Future<List<Transaction>> fromJson(String jsonBody) async {
-    final Iterable list = await json.decode(jsonBody) as Iterable;
-    var objList = <Transaction>[];
-    try {
-      objList = list
-          .map((transaction) =>
-              Transaction.fromMap(transaction as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      print(
-          'SQFENTITY ERROR Transaction.fromJson: ErrorMessage: ${e.toString()}');
-    }
-    return objList;
-  }
-
-  static Future<List<Transaction>> fromMapList(List<dynamic> data,
-      {bool preload = false,
-      List<String>? preloadFields,
-      bool loadParents = false,
-      List<String>? loadedFields,
-      bool setDefaultValues = true}) async {
-    final List<Transaction> objList = <Transaction>[];
-    loadedFields = loadedFields ?? [];
-    for (final map in data) {
-      final obj = Transaction.fromMap(map as Map<String, dynamic>,
-          setDefaultValues: setDefaultValues);
-      // final List<String> _loadedFields = List<String>.from(loadedFields);
-
-      // RELATIONSHIPS PRELOAD
-      if (preload || loadParents) {
-        loadedFields = loadedFields ?? [];
-        if (/*!_loadedfields!.contains('money_provider.plMoneyProvider') && */ (preloadFields ==
-                null ||
-            loadParents ||
-            preloadFields.contains('plMoneyProvider'))) {
-          /*_loadedfields!.add('money_provider.plMoneyProvider');*/
-          obj.plMoneyProvider = obj.plMoneyProvider ??
-              await obj.getMoneyProvider(
-                  loadParents: loadParents /*, loadedFields: _loadedFields*/);
-        }
-      } // END RELATIONSHIPS PRELOAD
-
-      objList.add(obj);
-    }
-    return objList;
-  }
-
-  /// returns Transaction by ID if exist, otherwise returns null
-  ///
-  /// Primary Keys: int? id
-  ///
-  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
-  ///
-  /// ex: getById(preload:true) -> Loads all related objects
-  ///
-  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
-  ///
-  /// ex: getById(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
-  ///
-  /// bool loadParents: if true, loads all parent objects until the object has no parent
-
-  ///
-  /// <returns>returns Transaction if exist, otherwise returns null
-  Future<Transaction?> getById(int? id,
-      {bool preload = false,
-      List<String>? preloadFields,
-      bool loadParents = false,
-      List<String>? loadedFields}) async {
-    if (id == null) {
-      return null;
-    }
-    Transaction? obj;
-    final data = await _mnTransaction.getById([id]);
-    if (data.length != 0) {
-      obj = Transaction.fromMap(data[0] as Map<String, dynamic>);
-      // final List<String> _loadedFields = loadedFields ?? [];
-
-      // RELATIONSHIPS PRELOAD
-      if (preload || loadParents) {
-        loadedFields = loadedFields ?? [];
-        if (/*!_loadedfields!.contains('money_provider.plMoneyProvider') && */ (preloadFields ==
-                null ||
-            loadParents ||
-            preloadFields.contains('plMoneyProvider'))) {
-          /*_loadedfields!.add('money_provider.plMoneyProvider');*/
-          obj.plMoneyProvider = obj.plMoneyProvider ??
-              await obj.getMoneyProvider(
-                  loadParents: loadParents /*, loadedFields: _loadedFields*/);
-        }
-      } // END RELATIONSHIPS PRELOAD
-
-    } else {
-      obj = null;
-    }
-    return obj;
-  }
-
-  /// Saves the (Transaction) object. If the id field is null, saves as a new record and returns new id, if id is not null then updates record
-
-  /// <returns>Returns id
-  Future<int?> save() async {
-    if (id == null || id == 0) {
-      id = await _mnTransaction.insert(this);
-    } else {
-      // id= await _upsert(); // removed in sqfentity_gen 1.3.0+6
-      await _mnTransaction.update(this);
-    }
-
-    return id;
-  }
-
-  /// saveAs Transaction. Returns a new Primary Key value of Transaction
-
-  /// <returns>Returns a new Primary Key value of Transaction
-  Future<int?> saveAs() async {
-    id = null;
-
-    return save();
-  }
-
-  /// saveAll method saves the sent List<Transaction> as a bulk in one transaction
-  ///
-  /// Returns a <List<BoolResult>>
-  static Future<List<dynamic>> saveAll(List<Transaction> transactions) async {
-    // final results = _mnTransaction.saveAll('INSERT OR REPLACE INTO transaction (id,capital, id_money_provider,isDeleted)  VALUES (?,?,?,?)',transactions);
-    // return results; removed in sqfentity_gen 1.3.0+6
-    await MyDbModel().batchStart();
-    for (final obj in transactions) {
-      await obj.save();
-    }
-    //    return MyDbModel().batchCommit();
-    final result = await MyDbModel().batchCommit();
-    for (int i = 0; i < transactions.length; i++) {
-      if (transactions[i].id == null) {
-        transactions[i].id = result![i] as int;
-      }
-    }
-
-    return result!;
-  }
-
-  /// Updates if the record exists, otherwise adds a new row
-
-  /// <returns>Returns id
-
-  Future<int?> upsert() async {
-    try {
-      final result = await _mnTransaction.rawInsert(
-          'INSERT OR REPLACE INTO transaction (id,capital, id_money_provider,isDeleted)  VALUES (?,?,?,?)',
-          [id, capital, id_money_provider, isDeleted]);
-      if (result! > 0) {
-        saveResult = BoolResult(
-            success: true,
-            successMessage: 'Transaction id=$id updated successfully');
-      } else {
-        saveResult = BoolResult(
-            success: false, errorMessage: 'Transaction id=$id did not update');
-      }
-      return id;
-    } catch (e) {
-      saveResult = BoolResult(
-          success: false,
-          errorMessage: 'Transaction Save failed. Error: ${e.toString()}');
-      return null;
-    }
-  }
-
-  /// inserts or replaces the sent List<<Transaction>> as a bulk in one transaction.
-  ///
-  /// upsertAll() method is faster then saveAll() method. upsertAll() should be used when you are sure that the primary key is greater than zero
-  ///
-  /// Returns a BoolCommitResult
-  Future<BoolCommitResult> upsertAll(List<Transaction> transactions) async {
-    final results = await _mnTransaction.rawInsertAll(
-        'INSERT OR REPLACE INTO transaction (id,capital, id_money_provider,isDeleted)  VALUES (?,?,?,?)',
-        transactions);
-    return results;
-  }
-
-  /// Deletes Transaction
-
-  /// <returns>BoolResult res.success=Deleted, not res.success=Can not deleted
-
-  Future<BoolResult> delete([bool hardDelete = false]) async {
-    print('SQFENTITIY: delete Transaction invoked (id=$id)');
-    if (!_softDeleteActivated || hardDelete || isDeleted!) {
-      return _mnTransaction
-          .delete(QueryParams(whereString: 'id=?', whereArguments: [id]));
-    } else {
-      return _mnTransaction.updateBatch(
-          QueryParams(whereString: 'id=?', whereArguments: [id]),
-          {'isDeleted': 1});
-    }
-  }
-
-  /// Recover Transaction>
-
-  /// <returns>BoolResult res.success=Recovered, not res.success=Can not recovered
-  Future<BoolResult> recover([bool recoverChilds = true]) async {
-    print('SQFENTITIY: recover Transaction invoked (id=$id)');
-    {
-      return _mnTransaction.updateBatch(
-          QueryParams(whereString: 'id=?', whereArguments: [id]),
-          {'isDeleted': 0});
-    }
-  }
-
-  TransactionFilterBuilder select(
-      {List<String>? columnsToSelect, bool? getIsDeleted}) {
-    return TransactionFilterBuilder(this)
-      .._getIsDeleted = getIsDeleted == true
-      ..qparams.selectColumns = columnsToSelect;
-  }
-
-  TransactionFilterBuilder distinct(
-      {List<String>? columnsToSelect, bool? getIsDeleted}) {
-    return TransactionFilterBuilder(this)
-      .._getIsDeleted = getIsDeleted == true
-      ..qparams.selectColumns = columnsToSelect
-      ..qparams.distinct = true;
-  }
-
-  void _setDefaultValues() {
-    isDeleted = isDeleted ?? false;
-  }
-  // END METHODS
-  // BEGIN CUSTOM CODE
-  /*
-      you can define customCode property of your SqfEntityTable constant. For example:
-      const tablePerson = SqfEntityTable(
-      tableName: 'person',
-      primaryKeyName: 'id',
-      primaryKeyType: PrimaryKeyType.integer_auto_incremental,
-      fields: [
-        SqfEntityField('firstName', DbType.text),
-        SqfEntityField('lastName', DbType.text),
-      ],
-      customCode: '''
-       String fullName()
-       { 
-         return '$firstName $lastName';
-       }
-      ''');
-     */
-  // END CUSTOM CODE
-}
-// endregion transaction
-
-// region TransactionField
-class TransactionField extends SearchCriteria {
-  TransactionField(this.transactionFB);
-  // { param = DbParameter(); }
-  DbParameter param = DbParameter();
-  String _waitingNot = '';
-  TransactionFilterBuilder transactionFB;
-
-  TransactionField get not {
-    _waitingNot = ' NOT ';
-    return this;
-  }
-
-  TransactionFilterBuilder equals(dynamic pValue) {
-    param.expression = '=';
-    transactionFB._addedBlocks = _waitingNot == ''
-        ? setCriteria(pValue, transactionFB.parameters, param, SqlSyntax.EQuals,
-            transactionFB._addedBlocks)
-        : setCriteria(pValue, transactionFB.parameters, param,
-            SqlSyntax.NotEQuals, transactionFB._addedBlocks);
-    _waitingNot = '';
-    transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-        transactionFB._addedBlocks.retVal;
-    return transactionFB;
-  }
-
-  TransactionFilterBuilder equalsOrNull(dynamic pValue) {
-    param.expression = '=';
-    transactionFB._addedBlocks = _waitingNot == ''
-        ? setCriteria(pValue, transactionFB.parameters, param,
-            SqlSyntax.EQualsOrNull, transactionFB._addedBlocks)
-        : setCriteria(pValue, transactionFB.parameters, param,
-            SqlSyntax.NotEQualsOrNull, transactionFB._addedBlocks);
-    _waitingNot = '';
-    transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-        transactionFB._addedBlocks.retVal;
-    return transactionFB;
-  }
-
-  TransactionFilterBuilder isNull() {
-    transactionFB._addedBlocks = setCriteria(
-        0,
-        transactionFB.parameters,
-        param,
-        SqlSyntax.IsNULL.replaceAll(SqlSyntax.notKeyword, _waitingNot),
-        transactionFB._addedBlocks);
-    _waitingNot = '';
-    transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-        transactionFB._addedBlocks.retVal;
-    return transactionFB;
-  }
-
-  TransactionFilterBuilder contains(dynamic pValue) {
-    if (pValue != null) {
-      transactionFB._addedBlocks = setCriteria(
-          '%${pValue.toString()}%',
-          transactionFB.parameters,
-          param,
-          SqlSyntax.Contains.replaceAll(SqlSyntax.notKeyword, _waitingNot),
-          transactionFB._addedBlocks);
-      _waitingNot = '';
-      transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-          transactionFB._addedBlocks.retVal;
-    }
-    return transactionFB;
-  }
-
-  TransactionFilterBuilder startsWith(dynamic pValue) {
-    if (pValue != null) {
-      transactionFB._addedBlocks = setCriteria(
-          '${pValue.toString()}%',
-          transactionFB.parameters,
-          param,
-          SqlSyntax.Contains.replaceAll(SqlSyntax.notKeyword, _waitingNot),
-          transactionFB._addedBlocks);
-      _waitingNot = '';
-      transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-          transactionFB._addedBlocks.retVal;
-      transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-          transactionFB._addedBlocks.retVal;
-    }
-    return transactionFB;
-  }
-
-  TransactionFilterBuilder endsWith(dynamic pValue) {
-    if (pValue != null) {
-      transactionFB._addedBlocks = setCriteria(
-          '%${pValue.toString()}',
-          transactionFB.parameters,
-          param,
-          SqlSyntax.Contains.replaceAll(SqlSyntax.notKeyword, _waitingNot),
-          transactionFB._addedBlocks);
-      _waitingNot = '';
-      transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-          transactionFB._addedBlocks.retVal;
-    }
-    return transactionFB;
-  }
-
-  TransactionFilterBuilder between(dynamic pFirst, dynamic pLast) {
-    if (pFirst != null && pLast != null) {
-      transactionFB._addedBlocks = setCriteria(
-          pFirst,
-          transactionFB.parameters,
-          param,
-          SqlSyntax.Between.replaceAll(SqlSyntax.notKeyword, _waitingNot),
-          transactionFB._addedBlocks,
-          pLast);
-    } else if (pFirst != null) {
-      if (_waitingNot != '') {
-        transactionFB._addedBlocks = setCriteria(
-            pFirst,
-            transactionFB.parameters,
-            param,
-            SqlSyntax.LessThan,
-            transactionFB._addedBlocks);
-      } else {
-        transactionFB._addedBlocks = setCriteria(
-            pFirst,
-            transactionFB.parameters,
-            param,
-            SqlSyntax.GreaterThanOrEquals,
-            transactionFB._addedBlocks);
-      }
-    } else if (pLast != null) {
-      if (_waitingNot != '') {
-        transactionFB._addedBlocks = setCriteria(
-            pLast,
-            transactionFB.parameters,
-            param,
-            SqlSyntax.GreaterThan,
-            transactionFB._addedBlocks);
-      } else {
-        transactionFB._addedBlocks = setCriteria(
-            pLast,
-            transactionFB.parameters,
-            param,
-            SqlSyntax.LessThanOrEquals,
-            transactionFB._addedBlocks);
-      }
-    }
-    _waitingNot = '';
-    transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-        transactionFB._addedBlocks.retVal;
-    return transactionFB;
-  }
-
-  TransactionFilterBuilder greaterThan(dynamic pValue) {
-    param.expression = '>';
-    transactionFB._addedBlocks = _waitingNot == ''
-        ? setCriteria(pValue, transactionFB.parameters, param,
-            SqlSyntax.GreaterThan, transactionFB._addedBlocks)
-        : setCriteria(pValue, transactionFB.parameters, param,
-            SqlSyntax.LessThanOrEquals, transactionFB._addedBlocks);
-    _waitingNot = '';
-    transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-        transactionFB._addedBlocks.retVal;
-    return transactionFB;
-  }
-
-  TransactionFilterBuilder lessThan(dynamic pValue) {
-    param.expression = '<';
-    transactionFB._addedBlocks = _waitingNot == ''
-        ? setCriteria(pValue, transactionFB.parameters, param,
-            SqlSyntax.LessThan, transactionFB._addedBlocks)
-        : setCriteria(pValue, transactionFB.parameters, param,
-            SqlSyntax.GreaterThanOrEquals, transactionFB._addedBlocks);
-    _waitingNot = '';
-    transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-        transactionFB._addedBlocks.retVal;
-    return transactionFB;
-  }
-
-  TransactionFilterBuilder greaterThanOrEquals(dynamic pValue) {
-    param.expression = '>=';
-    transactionFB._addedBlocks = _waitingNot == ''
-        ? setCriteria(pValue, transactionFB.parameters, param,
-            SqlSyntax.GreaterThanOrEquals, transactionFB._addedBlocks)
-        : setCriteria(pValue, transactionFB.parameters, param,
-            SqlSyntax.LessThan, transactionFB._addedBlocks);
-    _waitingNot = '';
-    transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-        transactionFB._addedBlocks.retVal;
-    return transactionFB;
-  }
-
-  TransactionFilterBuilder lessThanOrEquals(dynamic pValue) {
-    param.expression = '<=';
-    transactionFB._addedBlocks = _waitingNot == ''
-        ? setCriteria(pValue, transactionFB.parameters, param,
-            SqlSyntax.LessThanOrEquals, transactionFB._addedBlocks)
-        : setCriteria(pValue, transactionFB.parameters, param,
-            SqlSyntax.GreaterThan, transactionFB._addedBlocks);
-    _waitingNot = '';
-    transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-        transactionFB._addedBlocks.retVal;
-    return transactionFB;
-  }
-
-  TransactionFilterBuilder inValues(dynamic pValue) {
-    transactionFB._addedBlocks = setCriteria(
-        pValue,
-        transactionFB.parameters,
-        param,
-        SqlSyntax.IN.replaceAll(SqlSyntax.notKeyword, _waitingNot),
-        transactionFB._addedBlocks);
-    _waitingNot = '';
-    transactionFB._addedBlocks.needEndBlock![transactionFB._blockIndex] =
-        transactionFB._addedBlocks.retVal;
-    return transactionFB;
-  }
-}
-// endregion TransactionField
-
-// region TransactionFilterBuilder
-class TransactionFilterBuilder extends SearchCriteria {
-  TransactionFilterBuilder(Transaction obj) {
-    whereString = '';
-    groupByList = <String>[];
-    _addedBlocks.needEndBlock!.add(false);
-    _addedBlocks.waitingStartBlock!.add(false);
-    _obj = obj;
-  }
-  AddedBlocks _addedBlocks = AddedBlocks(<bool>[], <bool>[]);
-  int _blockIndex = 0;
-  List<DbParameter> parameters = <DbParameter>[];
-  List<String> orderByList = <String>[];
-  Transaction? _obj;
-  QueryParams qparams = QueryParams();
-  int _pagesize = 0;
-  int _page = 0;
-
-  /// put the sql keyword 'AND'
-  TransactionFilterBuilder get and {
-    if (parameters.isNotEmpty) {
-      parameters[parameters.length - 1].wOperator = ' AND ';
-    }
-    return this;
-  }
-
-  /// put the sql keyword 'OR'
-  TransactionFilterBuilder get or {
-    if (parameters.isNotEmpty) {
-      parameters[parameters.length - 1].wOperator = ' OR ';
-    }
-    return this;
-  }
-
-  /// open parentheses
-  TransactionFilterBuilder get startBlock {
-    _addedBlocks.waitingStartBlock!.add(true);
-    _addedBlocks.needEndBlock!.add(false);
-    _blockIndex++;
-    if (_blockIndex > 1) {
-      _addedBlocks.needEndBlock![_blockIndex - 1] = true;
-    }
-    return this;
-  }
-
-  /// String whereCriteria, write raw query without 'where' keyword. Like this: 'field1 like 'test%' and field2 = 3'
-  TransactionFilterBuilder where(String? whereCriteria,
-      {dynamic parameterValue}) {
-    if (whereCriteria != null && whereCriteria != '') {
-      final DbParameter param = DbParameter(
-          columnName: parameterValue == null ? null : '',
-          hasParameter: parameterValue != null);
-      _addedBlocks = setCriteria(parameterValue ?? 0, parameters, param,
-          '($whereCriteria)', _addedBlocks);
-      _addedBlocks.needEndBlock![_blockIndex] = _addedBlocks.retVal;
-    }
-    return this;
-  }
-
-  /// page = page number,
-  ///
-  /// pagesize = row(s) per page
-  TransactionFilterBuilder page(int page, int pagesize) {
-    if (page > 0) {
-      _page = page;
-    }
-    if (pagesize > 0) {
-      _pagesize = pagesize;
-    }
-    return this;
-  }
-
-  /// int count = LIMIT
-  TransactionFilterBuilder top(int count) {
-    if (count > 0) {
-      _pagesize = count;
-    }
-    return this;
-  }
-
-  /// close parentheses
-  TransactionFilterBuilder get endBlock {
-    if (_addedBlocks.needEndBlock![_blockIndex]) {
-      parameters[parameters.length - 1].whereString += ' ) ';
-    }
-    _addedBlocks.needEndBlock!.removeAt(_blockIndex);
-    _addedBlocks.waitingStartBlock!.removeAt(_blockIndex);
-    _blockIndex--;
-    return this;
-  }
-
-  /// argFields might be String or List<String>.
-  ///
-  /// Example 1: argFields='name, date'
-  ///
-  /// Example 2: argFields = ['name', 'date']
-  TransactionFilterBuilder orderBy(dynamic argFields) {
-    if (argFields != null) {
-      if (argFields is String) {
-        orderByList.add(argFields);
-      } else {
-        for (String? s in argFields as List<String?>) {
-          if (s!.isNotEmpty) {
-            orderByList.add(' $s ');
-          }
-        }
-      }
-    }
-    return this;
-  }
-
-  /// argFields might be String or List<String>.
-  ///
-  /// Example 1: argFields='field1, field2'
-  ///
-  /// Example 2: argFields = ['field1', 'field2']
-  TransactionFilterBuilder orderByDesc(dynamic argFields) {
-    if (argFields != null) {
-      if (argFields is String) {
-        orderByList.add('$argFields desc ');
-      } else {
-        for (String? s in argFields as List<String?>) {
-          if (s!.isNotEmpty) {
-            orderByList.add(' $s desc ');
-          }
-        }
-      }
-    }
-    return this;
-  }
-
-  /// argFields might be String or List<String>.
-  ///
-  /// Example 1: argFields='field1, field2'
-  ///
-  /// Example 2: argFields = ['field1', 'field2']
-  TransactionFilterBuilder groupBy(dynamic argFields) {
-    if (argFields != null) {
-      if (argFields is String) {
-        groupByList.add(' $argFields ');
-      } else {
-        for (String? s in argFields as List<String?>) {
-          if (s!.isNotEmpty) {
-            groupByList.add(' $s ');
-          }
-        }
-      }
-    }
-    return this;
-  }
-
-  /// argFields might be String or List<String>.
-  ///
-  /// Example 1: argFields='name, date'
-  ///
-  /// Example 2: argFields = ['name', 'date']
-  TransactionFilterBuilder having(dynamic argFields) {
-    if (argFields != null) {
-      if (argFields is String) {
-        havingList.add(argFields);
-      } else {
-        for (String? s in argFields as List<String?>) {
-          if (s!.isNotEmpty) {
-            havingList.add(' $s ');
-          }
-        }
-      }
-    }
-    return this;
-  }
-
-  TransactionField setField(
-      TransactionField? field, String colName, DbType dbtype) {
-    return TransactionField(this)
-      ..param = DbParameter(
-          dbType: dbtype,
-          columnName: colName,
-          wStartBlock: _addedBlocks.waitingStartBlock![_blockIndex]);
-  }
-
-  TransactionField? _id;
-  TransactionField get id {
-    return _id = setField(_id, 'id', DbType.integer);
-  }
-
-  TransactionField? _capital;
-  TransactionField get capital {
-    return _capital = setField(_capital, 'capital', DbType.real);
-  }
-
-  TransactionField? _id_money_provider;
-  TransactionField get id_money_provider {
-    return _id_money_provider =
-        setField(_id_money_provider, 'id_money_provider', DbType.integer);
-  }
-
-  TransactionField? _isDeleted;
-  TransactionField get isDeleted {
-    return _isDeleted = setField(_isDeleted, 'isDeleted', DbType.bool);
-  }
-
-  bool _getIsDeleted = false;
-
-  void _buildParameters() {
-    if (_page > 0 && _pagesize > 0) {
-      qparams
-        ..limit = _pagesize
-        ..offset = (_page - 1) * _pagesize;
-    } else {
-      qparams
-        ..limit = _pagesize
-        ..offset = _page;
-    }
-    for (DbParameter param in parameters) {
-      if (param.columnName != null) {
-        if (param.value is List && !param.hasParameter) {
-          param.value = param.dbType == DbType.text || param.value[0] is String
-              ? '\'${param.value.join('\',\'')}\''
-              : param.value.join(',');
-          whereString += param.whereString
-              .replaceAll('{field}', param.columnName!)
-              .replaceAll('?', param.value.toString());
-          param.value = null;
-        } else {
-          if (param.value is Map<String, dynamic> &&
-              param.value['sql'] != null) {
-            param
-              ..whereString = param.whereString
-                  .replaceAll('?', param.value['sql'].toString())
-              ..dbType = DbType.integer
-              ..value = param.value['args'];
-          }
-          whereString +=
-              param.whereString.replaceAll('{field}', param.columnName!);
-        }
-        if (!param.whereString.contains('?')) {
-        } else {
-          switch (param.dbType) {
-            case DbType.bool:
-              param.value = param.value == null
-                  ? null
-                  : param.value == true
-                      ? 1
-                      : 0;
-              param.value2 = param.value2 == null
-                  ? null
-                  : param.value2 == true
-                      ? 1
-                      : 0;
-              break;
-            case DbType.date:
-            case DbType.datetime:
-            case DbType.datetimeUtc:
-              param.value = param.value == null
-                  ? null
-                  : (param.value as DateTime).millisecondsSinceEpoch;
-              param.value2 = param.value2 == null
-                  ? null
-                  : (param.value2 as DateTime).millisecondsSinceEpoch;
-              break;
-            default:
-          }
-          if (param.value != null) {
-            if (param.value is List) {
-              for (var p in param.value) {
-                whereArguments.add(p);
-              }
-            } else {
-              whereArguments.add(param.value);
-            }
-          }
-          if (param.value2 != null) {
-            whereArguments.add(param.value2);
-          }
-        }
-      } else {
-        whereString += param.whereString;
-      }
-    }
-    if (Transaction._softDeleteActivated) {
-      if (whereString != '') {
-        whereString =
-            '${!_getIsDeleted ? 'ifnull(isDeleted,0)=0 AND' : ''} ($whereString)';
-      } else if (!_getIsDeleted) {
-        whereString = 'ifnull(isDeleted,0)=0';
-      }
-    }
-
-    if (whereString != '') {
-      qparams.whereString = whereString;
-    }
-    qparams
-      ..whereArguments = whereArguments
-      ..groupBy = groupByList.join(',')
-      ..orderBy = orderByList.join(',')
-      ..having = havingList.join(',');
-  }
-
-  /// Deletes List<Transaction> bulk by query
-  ///
-  /// <returns>BoolResult res.success=Deleted, not res.success=Can not deleted
-  Future<BoolResult> delete([bool hardDelete = false]) async {
-    _buildParameters();
-    var r = BoolResult(success: false);
-
-    if (Transaction._softDeleteActivated && !hardDelete) {
-      r = await _obj!._mnTransaction.updateBatch(qparams, {'isDeleted': 1});
-    } else {
-      r = await _obj!._mnTransaction.delete(qparams);
-    }
-    return r;
-  }
-
-  /// Recover List<Transaction> bulk by query
-  Future<BoolResult> recover() async {
-    _getIsDeleted = true;
-    _buildParameters();
-    print('SQFENTITIY: recover Transaction bulk invoked');
-    return _obj!._mnTransaction.updateBatch(qparams, {'isDeleted': 0});
-  }
-
-  /// using:
-  ///
-  /// update({'fieldName': Value})
-  ///
-  /// fieldName must be String. Value is dynamic, it can be any of the (int, bool, String.. )
-  Future<BoolResult> update(Map<String, dynamic> values) {
-    _buildParameters();
-    if (qparams.limit! > 0 || qparams.offset! > 0) {
-      qparams.whereString =
-          'id IN (SELECT id from transaction ${qparams.whereString!.isNotEmpty ? 'WHERE ${qparams.whereString}' : ''}${qparams.limit! > 0 ? ' LIMIT ${qparams.limit}' : ''}${qparams.offset! > 0 ? ' OFFSET ${qparams.offset}' : ''})';
-    }
-    return _obj!._mnTransaction.updateBatch(qparams, values);
-  }
-
-  /// This method always returns Transaction Obj if exist, otherwise returns null
-  ///
-  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
-  ///
-  /// ex: toSingle(preload:true) -> Loads all related objects
-  ///
-  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
-  ///
-  /// ex: toSingle(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
-  ///
-  /// bool loadParents: if true, loads all parent objects until the object has no parent
-
-  ///
-  /// <returns>List<Transaction>
-  Future<Transaction?> toSingle(
-      {bool preload = false,
-      List<String>? preloadFields,
-      bool loadParents = false,
-      List<String>? loadedFields}) async {
-    _pagesize = 1;
-    _buildParameters();
-    final objFuture = _obj!._mnTransaction.toList(qparams);
-    final data = await objFuture;
-    Transaction? obj;
-    if (data.isNotEmpty) {
-      obj = Transaction.fromMap(data[0] as Map<String, dynamic>);
-      // final List<String> _loadedFields = loadedFields ?? [];
-
-      // RELATIONSHIPS PRELOAD
-      if (preload || loadParents) {
-        loadedFields = loadedFields ?? [];
-        if (/*!_loadedfields!.contains('money_provider.plMoneyProvider') && */ (preloadFields ==
-                null ||
-            loadParents ||
-            preloadFields.contains('plMoneyProvider'))) {
-          /*_loadedfields!.add('money_provider.plMoneyProvider');*/
-          obj.plMoneyProvider = obj.plMoneyProvider ??
-              await obj.getMoneyProvider(
-                  loadParents: loadParents /*, loadedFields: _loadedFields*/);
-        }
-      } // END RELATIONSHIPS PRELOAD
-
-    } else {
-      obj = null;
-    }
-    return obj;
-  }
-
-  /// This method returns int. [Transaction]
-  ///
-  /// <returns>int
-  Future<int> toCount([VoidCallback Function(int c)? transactionCount]) async {
-    _buildParameters();
-    qparams.selectColumns = ['COUNT(1) AS CNT'];
-    final transactionsFuture = await _obj!._mnTransaction.toList(qparams);
-    final int count = transactionsFuture[0]['CNT'] as int;
-    if (transactionCount != null) {
-      transactionCount(count);
-    }
-    return count;
-  }
-
-  /// This method returns List<Transaction> [Transaction]
-  ///
-  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
-  ///
-  /// ex: toList(preload:true) -> Loads all related objects
-  ///
-  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
-  ///
-  /// ex: toList(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
-  ///
-  /// bool loadParents: if true, loads all parent objects until the object has no parent
-
-  ///
-  /// <returns>List<Transaction>
-  Future<List<Transaction>> toList(
-      {bool preload = false,
-      List<String>? preloadFields,
-      bool loadParents = false,
-      List<String>? loadedFields}) async {
-    final data = await toMapList();
-    final List<Transaction> transactionsData = await Transaction.fromMapList(
-        data,
-        preload: preload,
-        preloadFields: preloadFields,
-        loadParents: loadParents,
-        loadedFields: loadedFields,
-        setDefaultValues: qparams.selectColumns == null);
-    return transactionsData;
-  }
-
-  /// This method returns Json String [Transaction]
-  Future<String> toJson() async {
-    final list = <dynamic>[];
-    final data = await toList();
-    for (var o in data) {
-      list.add(o.toMap(forJson: true));
-    }
-    return json.encode(list);
-  }
-
-  /// This method returns Json String. [Transaction]
-  Future<String> toJsonWithChilds() async {
-    final list = <dynamic>[];
-    final data = await toList();
-    for (var o in data) {
-      list.add(await o.toMapWithChildren(false, true));
-    }
-    return json.encode(list);
-  }
-
-  /// This method returns List<dynamic>. [Transaction]
-  ///
-  /// <returns>List<dynamic>
-  Future<List<dynamic>> toMapList() async {
-    _buildParameters();
-    return await _obj!._mnTransaction.toList(qparams);
-  }
-
-  /// This method returns Primary Key List SQL and Parameters retVal = Map<String,dynamic>. [Transaction]
-  ///
-  /// retVal['sql'] = SQL statement string, retVal['args'] = whereArguments List<dynamic>;
-  ///
-  /// <returns>List<String>
-  Map<String, dynamic> toListPrimaryKeySQL([bool buildParameters = true]) {
-    final Map<String, dynamic> _retVal = <String, dynamic>{};
-    if (buildParameters) {
-      _buildParameters();
-    }
-    _retVal['sql'] =
-        'SELECT `id` FROM transaction WHERE ${qparams.whereString}';
-    _retVal['args'] = qparams.whereArguments;
-    return _retVal;
-  }
-
-  /// This method returns Primary Key List<int>.
-  /// <returns>List<int>
-  Future<List<int>> toListPrimaryKey([bool buildParameters = true]) async {
-    if (buildParameters) {
-      _buildParameters();
-    }
-    final List<int> idData = <int>[];
-    qparams.selectColumns = ['id'];
-    final idFuture = await _obj!._mnTransaction.toList(qparams);
-
-    final int count = idFuture.length;
-    for (int i = 0; i < count; i++) {
-      idData.add(idFuture[i]['id'] as int);
-    }
-    return idData;
-  }
-
-  /// Returns List<dynamic> for selected columns. Use this method for 'groupBy' with min,max,avg..  [Transaction]
-  ///
-  /// Sample usage: (see EXAMPLE 4.2 at https://github.com/hhtokpinar/sqfEntity#group-by)
-  Future<List<dynamic>> toListObject() async {
-    _buildParameters();
-
-    final objectFuture = _obj!._mnTransaction.toList(qparams);
-
-    final List<dynamic> objectsData = <dynamic>[];
-    final data = await objectFuture;
-    final int count = data.length;
-    for (int i = 0; i < count; i++) {
-      objectsData.add(data[i]);
-    }
-    return objectsData;
-  }
-
-  /// Returns List<String> for selected first column
-  ///
-  /// Sample usage: await Transaction.select(columnsToSelect: ['columnName']).toListString()
-  Future<List<String>> toListString(
-      [VoidCallback Function(List<String> o)? listString]) async {
-    _buildParameters();
-
-    final objectFuture = _obj!._mnTransaction.toList(qparams);
-
-    final List<String> objectsData = <String>[];
-    final data = await objectFuture;
-    final int count = data.length;
-    for (int i = 0; i < count; i++) {
-      objectsData.add(data[i][qparams.selectColumns![0]].toString());
-    }
-    if (listString != null) {
-      listString(objectsData);
-    }
-    return objectsData;
-  }
-}
-// endregion TransactionFilterBuilder
-
-// region TransactionFields
-class TransactionFields {
-  static TableField? _fId;
-  static TableField get id {
-    return _fId = _fId ?? SqlSyntax.setField(_fId, 'id', DbType.integer);
-  }
-
-  static TableField? _fCapital;
-  static TableField get capital {
-    return _fCapital =
-        _fCapital ?? SqlSyntax.setField(_fCapital, 'capital', DbType.real);
-  }
-
-  static TableField? _fId_money_provider;
-  static TableField get id_money_provider {
-    return _fId_money_provider = _fId_money_provider ??
-        SqlSyntax.setField(
-            _fId_money_provider, 'id_money_provider', DbType.integer);
-  }
-
-  static TableField? _fIsDeleted;
-  static TableField get isDeleted {
-    return _fIsDeleted = _fIsDeleted ??
-        SqlSyntax.setField(_fIsDeleted, 'isDeleted', DbType.integer);
-  }
-}
-// endregion TransactionFields
-
-//region TransactionManager
-class TransactionManager extends SqfEntityProvider {
-  TransactionManager()
-      : super(MyDbModel(),
-            tableName: _tableName,
-            primaryKeyList: _primaryKeyList,
-            whereStr: _whereStr);
-  static final String _tableName = 'transaction';
-  static final List<String> _primaryKeyList = ['id'];
-  static final String _whereStr = 'id=?';
-}
-
-//endregion TransactionManager
 // region Buying_list
 class Buying_list {
   Buying_list(
@@ -11699,15 +10523,19 @@ class Buying_listManager extends SqfEntityProvider {
 // region Buying_list_has_product
 class Buying_list_has_product {
   Buying_list_has_product(
-      {this.id, this.why_need_it, this.id_product, this.id_buying_list}) {
+      {this.id,
+      this.why_need_it,
+      this.already_buyed,
+      this.id_product,
+      this.id_buying_list}) {
     _setDefaultValues();
   }
-  Buying_list_has_product.withFields(
-      this.why_need_it, this.id_product, this.id_buying_list) {
+  Buying_list_has_product.withFields(this.why_need_it, this.already_buyed,
+      this.id_product, this.id_buying_list) {
     _setDefaultValues();
   }
-  Buying_list_has_product.withId(
-      this.id, this.why_need_it, this.id_product, this.id_buying_list) {
+  Buying_list_has_product.withId(this.id, this.why_need_it, this.already_buyed,
+      this.id_product, this.id_buying_list) {
     _setDefaultValues();
   }
   // fromMap v2.0
@@ -11719,6 +10547,10 @@ class Buying_list_has_product {
     id = int.tryParse(o['id'].toString());
     if (o['why_need_it'] != null) {
       why_need_it = o['why_need_it'].toString();
+    }
+    if (o['already_buyed'] != null) {
+      already_buyed = o['already_buyed'].toString() == '1' ||
+          o['already_buyed'].toString() == 'true';
     }
     id_product = int.tryParse(o['id_product'].toString());
 
@@ -11736,6 +10568,7 @@ class Buying_list_has_product {
   // FIELDS (Buying_list_has_product)
   int? id;
   String? why_need_it;
+  bool? already_buyed;
   int? id_product;
   int? id_buying_list;
 
@@ -11787,6 +10620,11 @@ class Buying_list_has_product {
       map['why_need_it'] = why_need_it;
     }
 
+    if (already_buyed != null) {
+      map['already_buyed'] =
+          forQuery ? (already_buyed! ? 1 : 0) : already_buyed;
+    }
+
     if (id_product != null) {
       map['id_product'] = forView
           ? plProduct == null
@@ -11816,6 +10654,11 @@ class Buying_list_has_product {
     }
     if (why_need_it != null) {
       map['why_need_it'] = why_need_it;
+    }
+
+    if (already_buyed != null) {
+      map['already_buyed'] =
+          forQuery ? (already_buyed! ? 1 : 0) : already_buyed;
     }
 
     if (id_product != null) {
@@ -11848,11 +10691,11 @@ class Buying_list_has_product {
   }
 
   List<dynamic> toArgs() {
-    return [why_need_it, id_product, id_buying_list];
+    return [why_need_it, already_buyed, id_product, id_buying_list];
   }
 
   List<dynamic> toArgsWithIds() {
-    return [id, why_need_it, id_product, id_buying_list];
+    return [id, why_need_it, already_buyed, id_product, id_buying_list];
   }
 
   static Future<List<Buying_list_has_product>?> fromWebUrl(Uri uri,
@@ -12014,7 +10857,7 @@ class Buying_list_has_product {
   /// Returns a <List<BoolResult>>
   static Future<List<dynamic>> saveAll(
       List<Buying_list_has_product> buying_list_has_products) async {
-    // final results = _mnBuying_list_has_product.saveAll('INSERT OR REPLACE INTO buying_list_has_products (id,why_need_it, id_product, id_buying_list)  VALUES (?,?,?,?)',buying_list_has_products);
+    // final results = _mnBuying_list_has_product.saveAll('INSERT OR REPLACE INTO buying_list_has_products (id,why_need_it, already_buyed, id_product, id_buying_list)  VALUES (?,?,?,?,?)',buying_list_has_products);
     // return results; removed in sqfentity_gen 1.3.0+6
     await MyDbModel().batchStart();
     for (final obj in buying_list_has_products) {
@@ -12038,8 +10881,8 @@ class Buying_list_has_product {
   Future<int?> upsert() async {
     try {
       final result = await _mnBuying_list_has_product.rawInsert(
-          'INSERT OR REPLACE INTO buying_list_has_products (id,why_need_it, id_product, id_buying_list)  VALUES (?,?,?,?)',
-          [id, why_need_it, id_product, id_buying_list]);
+          'INSERT OR REPLACE INTO buying_list_has_products (id,why_need_it, already_buyed, id_product, id_buying_list)  VALUES (?,?,?,?,?)',
+          [id, why_need_it, already_buyed, id_product, id_buying_list]);
       if (result! > 0) {
         saveResult = BoolResult(
             success: true,
@@ -12068,7 +10911,7 @@ class Buying_list_has_product {
   Future<BoolCommitResult> upsertAll(
       List<Buying_list_has_product> buying_list_has_products) async {
     final results = await _mnBuying_list_has_product.rawInsertAll(
-        'INSERT OR REPLACE INTO buying_list_has_products (id,why_need_it, id_product, id_buying_list)  VALUES (?,?,?,?)',
+        'INSERT OR REPLACE INTO buying_list_has_products (id,why_need_it, already_buyed, id_product, id_buying_list)  VALUES (?,?,?,?,?)',
         buying_list_has_products);
     return results;
   }
@@ -12106,6 +10949,7 @@ class Buying_list_has_product {
 
   void _setDefaultValues() {
     why_need_it = why_need_it ?? '';
+    already_buyed = already_buyed ?? true;
   }
   // END METHODS
   // BEGIN CUSTOM CODE
@@ -12555,6 +11399,12 @@ class Buying_list_has_productFilterBuilder extends SearchCriteria {
     return _why_need_it = setField(_why_need_it, 'why_need_it', DbType.text);
   }
 
+  Buying_list_has_productField? _already_buyed;
+  Buying_list_has_productField get already_buyed {
+    return _already_buyed =
+        setField(_already_buyed, 'already_buyed', DbType.bool);
+  }
+
   Buying_list_has_productField? _id_product;
   Buying_list_has_productField get id_product {
     return _id_product = setField(_id_product, 'id_product', DbType.integer);
@@ -12910,6 +11760,12 @@ class Buying_list_has_productFields {
         SqlSyntax.setField(_fWhy_need_it, 'why_need_it', DbType.text);
   }
 
+  static TableField? _fAlready_buyed;
+  static TableField get already_buyed {
+    return _fAlready_buyed = _fAlready_buyed ??
+        SqlSyntax.setField(_fAlready_buyed, 'already_buyed', DbType.bool);
+  }
+
   static TableField? _fId_product;
   static TableField get id_product {
     return _fId_product = _fId_product ??
@@ -12937,6 +11793,1188 @@ class Buying_list_has_productManager extends SqfEntityProvider {
 }
 
 //endregion Buying_list_has_productManager
+// region Transactions
+class Transactions {
+  Transactions({this.id, this.amount, this.id_money_provider, this.isDeleted}) {
+    _setDefaultValues();
+  }
+  Transactions.withFields(this.amount, this.id_money_provider, this.isDeleted) {
+    _setDefaultValues();
+  }
+  Transactions.withId(
+      this.id, this.amount, this.id_money_provider, this.isDeleted) {
+    _setDefaultValues();
+  }
+  // fromMap v2.0
+  Transactions.fromMap(Map<String, dynamic> o, {bool setDefaultValues = true}) {
+    if (setDefaultValues) {
+      _setDefaultValues();
+    }
+    id = int.tryParse(o['id'].toString());
+    if (o['amount'] != null) {
+      amount = double.tryParse(o['amount'].toString());
+    }
+    id_money_provider = int.tryParse(o['id_money_provider'].toString());
+
+    isDeleted = o['isDeleted'] != null
+        ? o['isDeleted'] == 1 || o['isDeleted'] == true
+        : null;
+
+    // RELATIONSHIPS FromMAP
+    plMoneyProvider = o['moneyProvider'] != null
+        ? MoneyProvider.fromMap(o['moneyProvider'] as Map<String, dynamic>)
+        : null;
+    // END RELATIONSHIPS FromMAP
+  }
+  // FIELDS (Transactions)
+  int? id;
+  double? amount;
+  int? id_money_provider;
+  bool? isDeleted;
+
+  BoolResult? saveResult;
+  // end FIELDS (Transactions)
+
+// RELATIONSHIPS (Transactions)
+  /// to load parent of items to this field, use preload parameter ex: toList(preload:true) or toSingle(preload:true) or getById(preload:true)
+  /// You can also specify this object into certain preload fields!. Ex: toList(preload:true, preloadFields:['plMoneyProvider', 'plField2'..]) or so on..
+  MoneyProvider? plMoneyProvider;
+
+  /// get MoneyProvider By Id_money_provider
+  Future<MoneyProvider?> getMoneyProvider(
+      {bool loadParents = false, List<String>? loadedFields}) async {
+    final _obj = await MoneyProvider().getById(id_money_provider,
+        loadParents: loadParents, loadedFields: loadedFields);
+    return _obj;
+  }
+  // END RELATIONSHIPS (Transactions)
+
+  static const bool _softDeleteActivated = true;
+  TransactionsManager? __mnTransactions;
+
+  TransactionsManager get _mnTransactions {
+    return __mnTransactions = __mnTransactions ?? TransactionsManager();
+  }
+
+  // METHODS
+  Map<String, dynamic> toMap(
+      {bool forQuery = false, bool forJson = false, bool forView = false}) {
+    final map = <String, dynamic>{};
+    if (id != null) {
+      map['id'] = id;
+    }
+    if (amount != null) {
+      map['amount'] = amount;
+    }
+
+    if (id_money_provider != null) {
+      map['id_money_provider'] = forView
+          ? plMoneyProvider == null
+              ? id_money_provider
+              : plMoneyProvider!.title
+          : id_money_provider;
+    }
+
+    if (isDeleted != null) {
+      map['isDeleted'] = forQuery ? (isDeleted! ? 1 : 0) : isDeleted;
+    }
+
+    return map;
+  }
+
+  Future<Map<String, dynamic>> toMapWithChildren(
+      [bool forQuery = false,
+      bool forJson = false,
+      bool forView = false]) async {
+    final map = <String, dynamic>{};
+    if (id != null) {
+      map['id'] = id;
+    }
+    if (amount != null) {
+      map['amount'] = amount;
+    }
+
+    if (id_money_provider != null) {
+      map['id_money_provider'] = forView
+          ? plMoneyProvider == null
+              ? id_money_provider
+              : plMoneyProvider!.title
+          : id_money_provider;
+    }
+
+    if (isDeleted != null) {
+      map['isDeleted'] = forQuery ? (isDeleted! ? 1 : 0) : isDeleted;
+    }
+
+    return map;
+  }
+
+  /// This method returns Json String [Transactions]
+  String toJson() {
+    return json.encode(toMap(forJson: true));
+  }
+
+  /// This method returns Json String [Transactions]
+  Future<String> toJsonWithChilds() async {
+    return json.encode(await toMapWithChildren(false, true));
+  }
+
+  List<dynamic> toArgs() {
+    return [amount, id_money_provider, isDeleted];
+  }
+
+  List<dynamic> toArgsWithIds() {
+    return [id, amount, id_money_provider, isDeleted];
+  }
+
+  static Future<List<Transactions>?> fromWebUrl(Uri uri,
+      {Map<String, String>? headers}) async {
+    try {
+      final response = await http.get(uri, headers: headers);
+      return await fromJson(response.body);
+    } catch (e) {
+      print(
+          'SQFENTITY ERROR Transactions.fromWebUrl: ErrorMessage: ${e.toString()}');
+      return null;
+    }
+  }
+
+  Future<http.Response> postUrl(Uri uri, {Map<String, String>? headers}) {
+    return http.post(uri, headers: headers, body: toJson());
+  }
+
+  static Future<List<Transactions>> fromJson(String jsonBody) async {
+    final Iterable list = await json.decode(jsonBody) as Iterable;
+    var objList = <Transactions>[];
+    try {
+      objList = list
+          .map((transactions) =>
+              Transactions.fromMap(transactions as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print(
+          'SQFENTITY ERROR Transactions.fromJson: ErrorMessage: ${e.toString()}');
+    }
+    return objList;
+  }
+
+  static Future<List<Transactions>> fromMapList(List<dynamic> data,
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields,
+      bool setDefaultValues = true}) async {
+    final List<Transactions> objList = <Transactions>[];
+    loadedFields = loadedFields ?? [];
+    for (final map in data) {
+      final obj = Transactions.fromMap(map as Map<String, dynamic>,
+          setDefaultValues: setDefaultValues);
+      // final List<String> _loadedFields = List<String>.from(loadedFields);
+
+      // RELATIONSHIPS PRELOAD
+      if (preload || loadParents) {
+        loadedFields = loadedFields ?? [];
+        if (/*!_loadedfields!.contains('money_provider.plMoneyProvider') && */ (preloadFields ==
+                null ||
+            loadParents ||
+            preloadFields.contains('plMoneyProvider'))) {
+          /*_loadedfields!.add('money_provider.plMoneyProvider');*/
+          obj.plMoneyProvider = obj.plMoneyProvider ??
+              await obj.getMoneyProvider(
+                  loadParents: loadParents /*, loadedFields: _loadedFields*/);
+        }
+      } // END RELATIONSHIPS PRELOAD
+
+      objList.add(obj);
+    }
+    return objList;
+  }
+
+  /// returns Transactions by ID if exist, otherwise returns null
+  ///
+  /// Primary Keys: int? id
+  ///
+  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
+  ///
+  /// ex: getById(preload:true) -> Loads all related objects
+  ///
+  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
+  ///
+  /// ex: getById(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
+  ///
+  /// bool loadParents: if true, loads all parent objects until the object has no parent
+
+  ///
+  /// <returns>returns Transactions if exist, otherwise returns null
+  Future<Transactions?> getById(int? id,
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields}) async {
+    if (id == null) {
+      return null;
+    }
+    Transactions? obj;
+    final data = await _mnTransactions.getById([id]);
+    if (data.length != 0) {
+      obj = Transactions.fromMap(data[0] as Map<String, dynamic>);
+      // final List<String> _loadedFields = loadedFields ?? [];
+
+      // RELATIONSHIPS PRELOAD
+      if (preload || loadParents) {
+        loadedFields = loadedFields ?? [];
+        if (/*!_loadedfields!.contains('money_provider.plMoneyProvider') && */ (preloadFields ==
+                null ||
+            loadParents ||
+            preloadFields.contains('plMoneyProvider'))) {
+          /*_loadedfields!.add('money_provider.plMoneyProvider');*/
+          obj.plMoneyProvider = obj.plMoneyProvider ??
+              await obj.getMoneyProvider(
+                  loadParents: loadParents /*, loadedFields: _loadedFields*/);
+        }
+      } // END RELATIONSHIPS PRELOAD
+
+    } else {
+      obj = null;
+    }
+    return obj;
+  }
+
+  /// Saves the (Transactions) object. If the id field is null, saves as a new record and returns new id, if id is not null then updates record
+
+  /// <returns>Returns id
+  Future<int?> save() async {
+    if (id == null || id == 0) {
+      id = await _mnTransactions.insert(this);
+    } else {
+      // id= await _upsert(); // removed in sqfentity_gen 1.3.0+6
+      await _mnTransactions.update(this);
+    }
+
+    return id;
+  }
+
+  /// saveAs Transactions. Returns a new Primary Key value of Transactions
+
+  /// <returns>Returns a new Primary Key value of Transactions
+  Future<int?> saveAs() async {
+    id = null;
+
+    return save();
+  }
+
+  /// saveAll method saves the sent List<Transactions> as a bulk in one transaction
+  ///
+  /// Returns a <List<BoolResult>>
+  static Future<List<dynamic>> saveAll(
+      List<Transactions> transactionses) async {
+    // final results = _mnTransactions.saveAll('INSERT OR REPLACE INTO transactions (id,amount, id_money_provider,isDeleted)  VALUES (?,?,?,?)',transactionses);
+    // return results; removed in sqfentity_gen 1.3.0+6
+    await MyDbModel().batchStart();
+    for (final obj in transactionses) {
+      await obj.save();
+    }
+    //    return MyDbModel().batchCommit();
+    final result = await MyDbModel().batchCommit();
+    for (int i = 0; i < transactionses.length; i++) {
+      if (transactionses[i].id == null) {
+        transactionses[i].id = result![i] as int;
+      }
+    }
+
+    return result!;
+  }
+
+  /// Updates if the record exists, otherwise adds a new row
+
+  /// <returns>Returns id
+
+  Future<int?> upsert() async {
+    try {
+      final result = await _mnTransactions.rawInsert(
+          'INSERT OR REPLACE INTO transactions (id,amount, id_money_provider,isDeleted)  VALUES (?,?,?,?)',
+          [id, amount, id_money_provider, isDeleted]);
+      if (result! > 0) {
+        saveResult = BoolResult(
+            success: true,
+            successMessage: 'Transactions id=$id updated successfully');
+      } else {
+        saveResult = BoolResult(
+            success: false, errorMessage: 'Transactions id=$id did not update');
+      }
+      return id;
+    } catch (e) {
+      saveResult = BoolResult(
+          success: false,
+          errorMessage: 'Transactions Save failed. Error: ${e.toString()}');
+      return null;
+    }
+  }
+
+  /// inserts or replaces the sent List<<Transactions>> as a bulk in one transaction.
+  ///
+  /// upsertAll() method is faster then saveAll() method. upsertAll() should be used when you are sure that the primary key is greater than zero
+  ///
+  /// Returns a BoolCommitResult
+  Future<BoolCommitResult> upsertAll(List<Transactions> transactionses) async {
+    final results = await _mnTransactions.rawInsertAll(
+        'INSERT OR REPLACE INTO transactions (id,amount, id_money_provider,isDeleted)  VALUES (?,?,?,?)',
+        transactionses);
+    return results;
+  }
+
+  /// Deletes Transactions
+
+  /// <returns>BoolResult res.success=Deleted, not res.success=Can not deleted
+
+  Future<BoolResult> delete([bool hardDelete = false]) async {
+    print('SQFENTITIY: delete Transactions invoked (id=$id)');
+    if (!_softDeleteActivated || hardDelete || isDeleted!) {
+      return _mnTransactions
+          .delete(QueryParams(whereString: 'id=?', whereArguments: [id]));
+    } else {
+      return _mnTransactions.updateBatch(
+          QueryParams(whereString: 'id=?', whereArguments: [id]),
+          {'isDeleted': 1});
+    }
+  }
+
+  /// Recover Transactions>
+
+  /// <returns>BoolResult res.success=Recovered, not res.success=Can not recovered
+  Future<BoolResult> recover([bool recoverChilds = true]) async {
+    print('SQFENTITIY: recover Transactions invoked (id=$id)');
+    {
+      return _mnTransactions.updateBatch(
+          QueryParams(whereString: 'id=?', whereArguments: [id]),
+          {'isDeleted': 0});
+    }
+  }
+
+  TransactionsFilterBuilder select(
+      {List<String>? columnsToSelect, bool? getIsDeleted}) {
+    return TransactionsFilterBuilder(this)
+      .._getIsDeleted = getIsDeleted == true
+      ..qparams.selectColumns = columnsToSelect;
+  }
+
+  TransactionsFilterBuilder distinct(
+      {List<String>? columnsToSelect, bool? getIsDeleted}) {
+    return TransactionsFilterBuilder(this)
+      .._getIsDeleted = getIsDeleted == true
+      ..qparams.selectColumns = columnsToSelect
+      ..qparams.distinct = true;
+  }
+
+  void _setDefaultValues() {
+    isDeleted = isDeleted ?? false;
+  }
+  // END METHODS
+  // BEGIN CUSTOM CODE
+  /*
+      you can define customCode property of your SqfEntityTable constant. For example:
+      const tablePerson = SqfEntityTable(
+      tableName: 'person',
+      primaryKeyName: 'id',
+      primaryKeyType: PrimaryKeyType.integer_auto_incremental,
+      fields: [
+        SqfEntityField('firstName', DbType.text),
+        SqfEntityField('lastName', DbType.text),
+      ],
+      customCode: '''
+       String fullName()
+       { 
+         return '$firstName $lastName';
+       }
+      ''');
+     */
+  // END CUSTOM CODE
+}
+// endregion transactions
+
+// region TransactionsField
+class TransactionsField extends SearchCriteria {
+  TransactionsField(this.transactionsFB);
+  // { param = DbParameter(); }
+  DbParameter param = DbParameter();
+  String _waitingNot = '';
+  TransactionsFilterBuilder transactionsFB;
+
+  TransactionsField get not {
+    _waitingNot = ' NOT ';
+    return this;
+  }
+
+  TransactionsFilterBuilder equals(dynamic pValue) {
+    param.expression = '=';
+    transactionsFB._addedBlocks = _waitingNot == ''
+        ? setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.EQuals, transactionsFB._addedBlocks)
+        : setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.NotEQuals, transactionsFB._addedBlocks);
+    _waitingNot = '';
+    transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+        transactionsFB._addedBlocks.retVal;
+    return transactionsFB;
+  }
+
+  TransactionsFilterBuilder equalsOrNull(dynamic pValue) {
+    param.expression = '=';
+    transactionsFB._addedBlocks = _waitingNot == ''
+        ? setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.EQualsOrNull, transactionsFB._addedBlocks)
+        : setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.NotEQualsOrNull, transactionsFB._addedBlocks);
+    _waitingNot = '';
+    transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+        transactionsFB._addedBlocks.retVal;
+    return transactionsFB;
+  }
+
+  TransactionsFilterBuilder isNull() {
+    transactionsFB._addedBlocks = setCriteria(
+        0,
+        transactionsFB.parameters,
+        param,
+        SqlSyntax.IsNULL.replaceAll(SqlSyntax.notKeyword, _waitingNot),
+        transactionsFB._addedBlocks);
+    _waitingNot = '';
+    transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+        transactionsFB._addedBlocks.retVal;
+    return transactionsFB;
+  }
+
+  TransactionsFilterBuilder contains(dynamic pValue) {
+    if (pValue != null) {
+      transactionsFB._addedBlocks = setCriteria(
+          '%${pValue.toString()}%',
+          transactionsFB.parameters,
+          param,
+          SqlSyntax.Contains.replaceAll(SqlSyntax.notKeyword, _waitingNot),
+          transactionsFB._addedBlocks);
+      _waitingNot = '';
+      transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+          transactionsFB._addedBlocks.retVal;
+    }
+    return transactionsFB;
+  }
+
+  TransactionsFilterBuilder startsWith(dynamic pValue) {
+    if (pValue != null) {
+      transactionsFB._addedBlocks = setCriteria(
+          '${pValue.toString()}%',
+          transactionsFB.parameters,
+          param,
+          SqlSyntax.Contains.replaceAll(SqlSyntax.notKeyword, _waitingNot),
+          transactionsFB._addedBlocks);
+      _waitingNot = '';
+      transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+          transactionsFB._addedBlocks.retVal;
+      transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+          transactionsFB._addedBlocks.retVal;
+    }
+    return transactionsFB;
+  }
+
+  TransactionsFilterBuilder endsWith(dynamic pValue) {
+    if (pValue != null) {
+      transactionsFB._addedBlocks = setCriteria(
+          '%${pValue.toString()}',
+          transactionsFB.parameters,
+          param,
+          SqlSyntax.Contains.replaceAll(SqlSyntax.notKeyword, _waitingNot),
+          transactionsFB._addedBlocks);
+      _waitingNot = '';
+      transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+          transactionsFB._addedBlocks.retVal;
+    }
+    return transactionsFB;
+  }
+
+  TransactionsFilterBuilder between(dynamic pFirst, dynamic pLast) {
+    if (pFirst != null && pLast != null) {
+      transactionsFB._addedBlocks = setCriteria(
+          pFirst,
+          transactionsFB.parameters,
+          param,
+          SqlSyntax.Between.replaceAll(SqlSyntax.notKeyword, _waitingNot),
+          transactionsFB._addedBlocks,
+          pLast);
+    } else if (pFirst != null) {
+      if (_waitingNot != '') {
+        transactionsFB._addedBlocks = setCriteria(
+            pFirst,
+            transactionsFB.parameters,
+            param,
+            SqlSyntax.LessThan,
+            transactionsFB._addedBlocks);
+      } else {
+        transactionsFB._addedBlocks = setCriteria(
+            pFirst,
+            transactionsFB.parameters,
+            param,
+            SqlSyntax.GreaterThanOrEquals,
+            transactionsFB._addedBlocks);
+      }
+    } else if (pLast != null) {
+      if (_waitingNot != '') {
+        transactionsFB._addedBlocks = setCriteria(
+            pLast,
+            transactionsFB.parameters,
+            param,
+            SqlSyntax.GreaterThan,
+            transactionsFB._addedBlocks);
+      } else {
+        transactionsFB._addedBlocks = setCriteria(
+            pLast,
+            transactionsFB.parameters,
+            param,
+            SqlSyntax.LessThanOrEquals,
+            transactionsFB._addedBlocks);
+      }
+    }
+    _waitingNot = '';
+    transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+        transactionsFB._addedBlocks.retVal;
+    return transactionsFB;
+  }
+
+  TransactionsFilterBuilder greaterThan(dynamic pValue) {
+    param.expression = '>';
+    transactionsFB._addedBlocks = _waitingNot == ''
+        ? setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.GreaterThan, transactionsFB._addedBlocks)
+        : setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.LessThanOrEquals, transactionsFB._addedBlocks);
+    _waitingNot = '';
+    transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+        transactionsFB._addedBlocks.retVal;
+    return transactionsFB;
+  }
+
+  TransactionsFilterBuilder lessThan(dynamic pValue) {
+    param.expression = '<';
+    transactionsFB._addedBlocks = _waitingNot == ''
+        ? setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.LessThan, transactionsFB._addedBlocks)
+        : setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.GreaterThanOrEquals, transactionsFB._addedBlocks);
+    _waitingNot = '';
+    transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+        transactionsFB._addedBlocks.retVal;
+    return transactionsFB;
+  }
+
+  TransactionsFilterBuilder greaterThanOrEquals(dynamic pValue) {
+    param.expression = '>=';
+    transactionsFB._addedBlocks = _waitingNot == ''
+        ? setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.GreaterThanOrEquals, transactionsFB._addedBlocks)
+        : setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.LessThan, transactionsFB._addedBlocks);
+    _waitingNot = '';
+    transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+        transactionsFB._addedBlocks.retVal;
+    return transactionsFB;
+  }
+
+  TransactionsFilterBuilder lessThanOrEquals(dynamic pValue) {
+    param.expression = '<=';
+    transactionsFB._addedBlocks = _waitingNot == ''
+        ? setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.LessThanOrEquals, transactionsFB._addedBlocks)
+        : setCriteria(pValue, transactionsFB.parameters, param,
+            SqlSyntax.GreaterThan, transactionsFB._addedBlocks);
+    _waitingNot = '';
+    transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+        transactionsFB._addedBlocks.retVal;
+    return transactionsFB;
+  }
+
+  TransactionsFilterBuilder inValues(dynamic pValue) {
+    transactionsFB._addedBlocks = setCriteria(
+        pValue,
+        transactionsFB.parameters,
+        param,
+        SqlSyntax.IN.replaceAll(SqlSyntax.notKeyword, _waitingNot),
+        transactionsFB._addedBlocks);
+    _waitingNot = '';
+    transactionsFB._addedBlocks.needEndBlock![transactionsFB._blockIndex] =
+        transactionsFB._addedBlocks.retVal;
+    return transactionsFB;
+  }
+}
+// endregion TransactionsField
+
+// region TransactionsFilterBuilder
+class TransactionsFilterBuilder extends SearchCriteria {
+  TransactionsFilterBuilder(Transactions obj) {
+    whereString = '';
+    groupByList = <String>[];
+    _addedBlocks.needEndBlock!.add(false);
+    _addedBlocks.waitingStartBlock!.add(false);
+    _obj = obj;
+  }
+  AddedBlocks _addedBlocks = AddedBlocks(<bool>[], <bool>[]);
+  int _blockIndex = 0;
+  List<DbParameter> parameters = <DbParameter>[];
+  List<String> orderByList = <String>[];
+  Transactions? _obj;
+  QueryParams qparams = QueryParams();
+  int _pagesize = 0;
+  int _page = 0;
+
+  /// put the sql keyword 'AND'
+  TransactionsFilterBuilder get and {
+    if (parameters.isNotEmpty) {
+      parameters[parameters.length - 1].wOperator = ' AND ';
+    }
+    return this;
+  }
+
+  /// put the sql keyword 'OR'
+  TransactionsFilterBuilder get or {
+    if (parameters.isNotEmpty) {
+      parameters[parameters.length - 1].wOperator = ' OR ';
+    }
+    return this;
+  }
+
+  /// open parentheses
+  TransactionsFilterBuilder get startBlock {
+    _addedBlocks.waitingStartBlock!.add(true);
+    _addedBlocks.needEndBlock!.add(false);
+    _blockIndex++;
+    if (_blockIndex > 1) {
+      _addedBlocks.needEndBlock![_blockIndex - 1] = true;
+    }
+    return this;
+  }
+
+  /// String whereCriteria, write raw query without 'where' keyword. Like this: 'field1 like 'test%' and field2 = 3'
+  TransactionsFilterBuilder where(String? whereCriteria,
+      {dynamic parameterValue}) {
+    if (whereCriteria != null && whereCriteria != '') {
+      final DbParameter param = DbParameter(
+          columnName: parameterValue == null ? null : '',
+          hasParameter: parameterValue != null);
+      _addedBlocks = setCriteria(parameterValue ?? 0, parameters, param,
+          '($whereCriteria)', _addedBlocks);
+      _addedBlocks.needEndBlock![_blockIndex] = _addedBlocks.retVal;
+    }
+    return this;
+  }
+
+  /// page = page number,
+  ///
+  /// pagesize = row(s) per page
+  TransactionsFilterBuilder page(int page, int pagesize) {
+    if (page > 0) {
+      _page = page;
+    }
+    if (pagesize > 0) {
+      _pagesize = pagesize;
+    }
+    return this;
+  }
+
+  /// int count = LIMIT
+  TransactionsFilterBuilder top(int count) {
+    if (count > 0) {
+      _pagesize = count;
+    }
+    return this;
+  }
+
+  /// close parentheses
+  TransactionsFilterBuilder get endBlock {
+    if (_addedBlocks.needEndBlock![_blockIndex]) {
+      parameters[parameters.length - 1].whereString += ' ) ';
+    }
+    _addedBlocks.needEndBlock!.removeAt(_blockIndex);
+    _addedBlocks.waitingStartBlock!.removeAt(_blockIndex);
+    _blockIndex--;
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  ///
+  /// Example 1: argFields='name, date'
+  ///
+  /// Example 2: argFields = ['name', 'date']
+  TransactionsFilterBuilder orderBy(dynamic argFields) {
+    if (argFields != null) {
+      if (argFields is String) {
+        orderByList.add(argFields);
+      } else {
+        for (String? s in argFields as List<String?>) {
+          if (s!.isNotEmpty) {
+            orderByList.add(' $s ');
+          }
+        }
+      }
+    }
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  ///
+  /// Example 1: argFields='field1, field2'
+  ///
+  /// Example 2: argFields = ['field1', 'field2']
+  TransactionsFilterBuilder orderByDesc(dynamic argFields) {
+    if (argFields != null) {
+      if (argFields is String) {
+        orderByList.add('$argFields desc ');
+      } else {
+        for (String? s in argFields as List<String?>) {
+          if (s!.isNotEmpty) {
+            orderByList.add(' $s desc ');
+          }
+        }
+      }
+    }
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  ///
+  /// Example 1: argFields='field1, field2'
+  ///
+  /// Example 2: argFields = ['field1', 'field2']
+  TransactionsFilterBuilder groupBy(dynamic argFields) {
+    if (argFields != null) {
+      if (argFields is String) {
+        groupByList.add(' $argFields ');
+      } else {
+        for (String? s in argFields as List<String?>) {
+          if (s!.isNotEmpty) {
+            groupByList.add(' $s ');
+          }
+        }
+      }
+    }
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  ///
+  /// Example 1: argFields='name, date'
+  ///
+  /// Example 2: argFields = ['name', 'date']
+  TransactionsFilterBuilder having(dynamic argFields) {
+    if (argFields != null) {
+      if (argFields is String) {
+        havingList.add(argFields);
+      } else {
+        for (String? s in argFields as List<String?>) {
+          if (s!.isNotEmpty) {
+            havingList.add(' $s ');
+          }
+        }
+      }
+    }
+    return this;
+  }
+
+  TransactionsField setField(
+      TransactionsField? field, String colName, DbType dbtype) {
+    return TransactionsField(this)
+      ..param = DbParameter(
+          dbType: dbtype,
+          columnName: colName,
+          wStartBlock: _addedBlocks.waitingStartBlock![_blockIndex]);
+  }
+
+  TransactionsField? _id;
+  TransactionsField get id {
+    return _id = setField(_id, 'id', DbType.integer);
+  }
+
+  TransactionsField? _amount;
+  TransactionsField get amount {
+    return _amount = setField(_amount, 'amount', DbType.real);
+  }
+
+  TransactionsField? _id_money_provider;
+  TransactionsField get id_money_provider {
+    return _id_money_provider =
+        setField(_id_money_provider, 'id_money_provider', DbType.integer);
+  }
+
+  TransactionsField? _isDeleted;
+  TransactionsField get isDeleted {
+    return _isDeleted = setField(_isDeleted, 'isDeleted', DbType.bool);
+  }
+
+  bool _getIsDeleted = false;
+
+  void _buildParameters() {
+    if (_page > 0 && _pagesize > 0) {
+      qparams
+        ..limit = _pagesize
+        ..offset = (_page - 1) * _pagesize;
+    } else {
+      qparams
+        ..limit = _pagesize
+        ..offset = _page;
+    }
+    for (DbParameter param in parameters) {
+      if (param.columnName != null) {
+        if (param.value is List && !param.hasParameter) {
+          param.value = param.dbType == DbType.text || param.value[0] is String
+              ? '\'${param.value.join('\',\'')}\''
+              : param.value.join(',');
+          whereString += param.whereString
+              .replaceAll('{field}', param.columnName!)
+              .replaceAll('?', param.value.toString());
+          param.value = null;
+        } else {
+          if (param.value is Map<String, dynamic> &&
+              param.value['sql'] != null) {
+            param
+              ..whereString = param.whereString
+                  .replaceAll('?', param.value['sql'].toString())
+              ..dbType = DbType.integer
+              ..value = param.value['args'];
+          }
+          whereString +=
+              param.whereString.replaceAll('{field}', param.columnName!);
+        }
+        if (!param.whereString.contains('?')) {
+        } else {
+          switch (param.dbType) {
+            case DbType.bool:
+              param.value = param.value == null
+                  ? null
+                  : param.value == true
+                      ? 1
+                      : 0;
+              param.value2 = param.value2 == null
+                  ? null
+                  : param.value2 == true
+                      ? 1
+                      : 0;
+              break;
+            case DbType.date:
+            case DbType.datetime:
+            case DbType.datetimeUtc:
+              param.value = param.value == null
+                  ? null
+                  : (param.value as DateTime).millisecondsSinceEpoch;
+              param.value2 = param.value2 == null
+                  ? null
+                  : (param.value2 as DateTime).millisecondsSinceEpoch;
+              break;
+            default:
+          }
+          if (param.value != null) {
+            if (param.value is List) {
+              for (var p in param.value) {
+                whereArguments.add(p);
+              }
+            } else {
+              whereArguments.add(param.value);
+            }
+          }
+          if (param.value2 != null) {
+            whereArguments.add(param.value2);
+          }
+        }
+      } else {
+        whereString += param.whereString;
+      }
+    }
+    if (Transactions._softDeleteActivated) {
+      if (whereString != '') {
+        whereString =
+            '${!_getIsDeleted ? 'ifnull(isDeleted,0)=0 AND' : ''} ($whereString)';
+      } else if (!_getIsDeleted) {
+        whereString = 'ifnull(isDeleted,0)=0';
+      }
+    }
+
+    if (whereString != '') {
+      qparams.whereString = whereString;
+    }
+    qparams
+      ..whereArguments = whereArguments
+      ..groupBy = groupByList.join(',')
+      ..orderBy = orderByList.join(',')
+      ..having = havingList.join(',');
+  }
+
+  /// Deletes List<Transactions> bulk by query
+  ///
+  /// <returns>BoolResult res.success=Deleted, not res.success=Can not deleted
+  Future<BoolResult> delete([bool hardDelete = false]) async {
+    _buildParameters();
+    var r = BoolResult(success: false);
+
+    if (Transactions._softDeleteActivated && !hardDelete) {
+      r = await _obj!._mnTransactions.updateBatch(qparams, {'isDeleted': 1});
+    } else {
+      r = await _obj!._mnTransactions.delete(qparams);
+    }
+    return r;
+  }
+
+  /// Recover List<Transactions> bulk by query
+  Future<BoolResult> recover() async {
+    _getIsDeleted = true;
+    _buildParameters();
+    print('SQFENTITIY: recover Transactions bulk invoked');
+    return _obj!._mnTransactions.updateBatch(qparams, {'isDeleted': 0});
+  }
+
+  /// using:
+  ///
+  /// update({'fieldName': Value})
+  ///
+  /// fieldName must be String. Value is dynamic, it can be any of the (int, bool, String.. )
+  Future<BoolResult> update(Map<String, dynamic> values) {
+    _buildParameters();
+    if (qparams.limit! > 0 || qparams.offset! > 0) {
+      qparams.whereString =
+          'id IN (SELECT id from transactions ${qparams.whereString!.isNotEmpty ? 'WHERE ${qparams.whereString}' : ''}${qparams.limit! > 0 ? ' LIMIT ${qparams.limit}' : ''}${qparams.offset! > 0 ? ' OFFSET ${qparams.offset}' : ''})';
+    }
+    return _obj!._mnTransactions.updateBatch(qparams, values);
+  }
+
+  /// This method always returns Transactions Obj if exist, otherwise returns null
+  ///
+  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
+  ///
+  /// ex: toSingle(preload:true) -> Loads all related objects
+  ///
+  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
+  ///
+  /// ex: toSingle(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
+  ///
+  /// bool loadParents: if true, loads all parent objects until the object has no parent
+
+  ///
+  /// <returns>List<Transactions>
+  Future<Transactions?> toSingle(
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields}) async {
+    _pagesize = 1;
+    _buildParameters();
+    final objFuture = _obj!._mnTransactions.toList(qparams);
+    final data = await objFuture;
+    Transactions? obj;
+    if (data.isNotEmpty) {
+      obj = Transactions.fromMap(data[0] as Map<String, dynamic>);
+      // final List<String> _loadedFields = loadedFields ?? [];
+
+      // RELATIONSHIPS PRELOAD
+      if (preload || loadParents) {
+        loadedFields = loadedFields ?? [];
+        if (/*!_loadedfields!.contains('money_provider.plMoneyProvider') && */ (preloadFields ==
+                null ||
+            loadParents ||
+            preloadFields.contains('plMoneyProvider'))) {
+          /*_loadedfields!.add('money_provider.plMoneyProvider');*/
+          obj.plMoneyProvider = obj.plMoneyProvider ??
+              await obj.getMoneyProvider(
+                  loadParents: loadParents /*, loadedFields: _loadedFields*/);
+        }
+      } // END RELATIONSHIPS PRELOAD
+
+    } else {
+      obj = null;
+    }
+    return obj;
+  }
+
+  /// This method returns int. [Transactions]
+  ///
+  /// <returns>int
+  Future<int> toCount([VoidCallback Function(int c)? transactionsCount]) async {
+    _buildParameters();
+    qparams.selectColumns = ['COUNT(1) AS CNT'];
+    final transactionsesFuture = await _obj!._mnTransactions.toList(qparams);
+    final int count = transactionsesFuture[0]['CNT'] as int;
+    if (transactionsCount != null) {
+      transactionsCount(count);
+    }
+    return count;
+  }
+
+  /// This method returns List<Transactions> [Transactions]
+  ///
+  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
+  ///
+  /// ex: toList(preload:true) -> Loads all related objects
+  ///
+  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
+  ///
+  /// ex: toList(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
+  ///
+  /// bool loadParents: if true, loads all parent objects until the object has no parent
+
+  ///
+  /// <returns>List<Transactions>
+  Future<List<Transactions>> toList(
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields}) async {
+    final data = await toMapList();
+    final List<Transactions> transactionsesData =
+        await Transactions.fromMapList(data,
+            preload: preload,
+            preloadFields: preloadFields,
+            loadParents: loadParents,
+            loadedFields: loadedFields,
+            setDefaultValues: qparams.selectColumns == null);
+    return transactionsesData;
+  }
+
+  /// This method returns Json String [Transactions]
+  Future<String> toJson() async {
+    final list = <dynamic>[];
+    final data = await toList();
+    for (var o in data) {
+      list.add(o.toMap(forJson: true));
+    }
+    return json.encode(list);
+  }
+
+  /// This method returns Json String. [Transactions]
+  Future<String> toJsonWithChilds() async {
+    final list = <dynamic>[];
+    final data = await toList();
+    for (var o in data) {
+      list.add(await o.toMapWithChildren(false, true));
+    }
+    return json.encode(list);
+  }
+
+  /// This method returns List<dynamic>. [Transactions]
+  ///
+  /// <returns>List<dynamic>
+  Future<List<dynamic>> toMapList() async {
+    _buildParameters();
+    return await _obj!._mnTransactions.toList(qparams);
+  }
+
+  /// This method returns Primary Key List SQL and Parameters retVal = Map<String,dynamic>. [Transactions]
+  ///
+  /// retVal['sql'] = SQL statement string, retVal['args'] = whereArguments List<dynamic>;
+  ///
+  /// <returns>List<String>
+  Map<String, dynamic> toListPrimaryKeySQL([bool buildParameters = true]) {
+    final Map<String, dynamic> _retVal = <String, dynamic>{};
+    if (buildParameters) {
+      _buildParameters();
+    }
+    _retVal['sql'] =
+        'SELECT `id` FROM transactions WHERE ${qparams.whereString}';
+    _retVal['args'] = qparams.whereArguments;
+    return _retVal;
+  }
+
+  /// This method returns Primary Key List<int>.
+  /// <returns>List<int>
+  Future<List<int>> toListPrimaryKey([bool buildParameters = true]) async {
+    if (buildParameters) {
+      _buildParameters();
+    }
+    final List<int> idData = <int>[];
+    qparams.selectColumns = ['id'];
+    final idFuture = await _obj!._mnTransactions.toList(qparams);
+
+    final int count = idFuture.length;
+    for (int i = 0; i < count; i++) {
+      idData.add(idFuture[i]['id'] as int);
+    }
+    return idData;
+  }
+
+  /// Returns List<dynamic> for selected columns. Use this method for 'groupBy' with min,max,avg..  [Transactions]
+  ///
+  /// Sample usage: (see EXAMPLE 4.2 at https://github.com/hhtokpinar/sqfEntity#group-by)
+  Future<List<dynamic>> toListObject() async {
+    _buildParameters();
+
+    final objectFuture = _obj!._mnTransactions.toList(qparams);
+
+    final List<dynamic> objectsData = <dynamic>[];
+    final data = await objectFuture;
+    final int count = data.length;
+    for (int i = 0; i < count; i++) {
+      objectsData.add(data[i]);
+    }
+    return objectsData;
+  }
+
+  /// Returns List<String> for selected first column
+  ///
+  /// Sample usage: await Transactions.select(columnsToSelect: ['columnName']).toListString()
+  Future<List<String>> toListString(
+      [VoidCallback Function(List<String> o)? listString]) async {
+    _buildParameters();
+
+    final objectFuture = _obj!._mnTransactions.toList(qparams);
+
+    final List<String> objectsData = <String>[];
+    final data = await objectFuture;
+    final int count = data.length;
+    for (int i = 0; i < count; i++) {
+      objectsData.add(data[i][qparams.selectColumns![0]].toString());
+    }
+    if (listString != null) {
+      listString(objectsData);
+    }
+    return objectsData;
+  }
+}
+// endregion TransactionsFilterBuilder
+
+// region TransactionsFields
+class TransactionsFields {
+  static TableField? _fId;
+  static TableField get id {
+    return _fId = _fId ?? SqlSyntax.setField(_fId, 'id', DbType.integer);
+  }
+
+  static TableField? _fAmount;
+  static TableField get amount {
+    return _fAmount =
+        _fAmount ?? SqlSyntax.setField(_fAmount, 'amount', DbType.real);
+  }
+
+  static TableField? _fId_money_provider;
+  static TableField get id_money_provider {
+    return _fId_money_provider = _fId_money_provider ??
+        SqlSyntax.setField(
+            _fId_money_provider, 'id_money_provider', DbType.integer);
+  }
+
+  static TableField? _fIsDeleted;
+  static TableField get isDeleted {
+    return _fIsDeleted = _fIsDeleted ??
+        SqlSyntax.setField(_fIsDeleted, 'isDeleted', DbType.integer);
+  }
+}
+// endregion TransactionsFields
+
+//region TransactionsManager
+class TransactionsManager extends SqfEntityProvider {
+  TransactionsManager()
+      : super(MyDbModel(),
+            tableName: _tableName,
+            primaryKeyList: _primaryKeyList,
+            whereStr: _whereStr);
+  static final String _tableName = 'transactions';
+  static final List<String> _primaryKeyList = ['id'];
+  static final String _whereStr = 'id=?';
+}
+
+//endregion TransactionsManager
 /// Region SEQUENCE IdentitySequence
 class IdentitySequence {
   /// Assigns a new value when it is triggered and returns the new value
