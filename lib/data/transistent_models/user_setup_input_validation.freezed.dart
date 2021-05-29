@@ -17,10 +17,14 @@ class _$UserSetupInputValidationTearOff {
   const _$UserSetupInputValidationTearOff();
 
   _UserSetupInputValidation call(
-      {String? usersname, bool? gender, String? msgUserNameValidation}) {
+      {String? usersname,
+      bool? gender,
+      GenderSetup? genderSelection,
+      String? msgUserNameValidation}) {
     return _UserSetupInputValidation(
       usersname: usersname,
       gender: gender,
+      genderSelection: genderSelection,
       msgUserNameValidation: msgUserNameValidation,
     );
   }
@@ -33,6 +37,7 @@ const $UserSetupInputValidation = _$UserSetupInputValidationTearOff();
 mixin _$UserSetupInputValidation {
   String? get usersname => throw _privateConstructorUsedError;
   bool? get gender => throw _privateConstructorUsedError;
+  GenderSetup? get genderSelection => throw _privateConstructorUsedError;
   String? get msgUserNameValidation => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
@@ -45,7 +50,13 @@ abstract class $UserSetupInputValidationCopyWith<$Res> {
   factory $UserSetupInputValidationCopyWith(UserSetupInputValidation value,
           $Res Function(UserSetupInputValidation) then) =
       _$UserSetupInputValidationCopyWithImpl<$Res>;
-  $Res call({String? usersname, bool? gender, String? msgUserNameValidation});
+  $Res call(
+      {String? usersname,
+      bool? gender,
+      GenderSetup? genderSelection,
+      String? msgUserNameValidation});
+
+  $GenderSetupCopyWith<$Res>? get genderSelection;
 }
 
 /// @nodoc
@@ -61,6 +72,7 @@ class _$UserSetupInputValidationCopyWithImpl<$Res>
   $Res call({
     Object? usersname = freezed,
     Object? gender = freezed,
+    Object? genderSelection = freezed,
     Object? msgUserNameValidation = freezed,
   }) {
     return _then(_value.copyWith(
@@ -72,11 +84,26 @@ class _$UserSetupInputValidationCopyWithImpl<$Res>
           ? _value.gender
           : gender // ignore: cast_nullable_to_non_nullable
               as bool?,
+      genderSelection: genderSelection == freezed
+          ? _value.genderSelection
+          : genderSelection // ignore: cast_nullable_to_non_nullable
+              as GenderSetup?,
       msgUserNameValidation: msgUserNameValidation == freezed
           ? _value.msgUserNameValidation
           : msgUserNameValidation // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
+  }
+
+  @override
+  $GenderSetupCopyWith<$Res>? get genderSelection {
+    if (_value.genderSelection == null) {
+      return null;
+    }
+
+    return $GenderSetupCopyWith<$Res>(_value.genderSelection!, (value) {
+      return _then(_value.copyWith(genderSelection: value));
+    });
   }
 }
 
@@ -87,7 +114,14 @@ abstract class _$UserSetupInputValidationCopyWith<$Res>
           $Res Function(_UserSetupInputValidation) then) =
       __$UserSetupInputValidationCopyWithImpl<$Res>;
   @override
-  $Res call({String? usersname, bool? gender, String? msgUserNameValidation});
+  $Res call(
+      {String? usersname,
+      bool? gender,
+      GenderSetup? genderSelection,
+      String? msgUserNameValidation});
+
+  @override
+  $GenderSetupCopyWith<$Res>? get genderSelection;
 }
 
 /// @nodoc
@@ -106,6 +140,7 @@ class __$UserSetupInputValidationCopyWithImpl<$Res>
   $Res call({
     Object? usersname = freezed,
     Object? gender = freezed,
+    Object? genderSelection = freezed,
     Object? msgUserNameValidation = freezed,
   }) {
     return _then(_UserSetupInputValidation(
@@ -117,6 +152,10 @@ class __$UserSetupInputValidationCopyWithImpl<$Res>
           ? _value.gender
           : gender // ignore: cast_nullable_to_non_nullable
               as bool?,
+      genderSelection: genderSelection == freezed
+          ? _value.genderSelection
+          : genderSelection // ignore: cast_nullable_to_non_nullable
+              as GenderSetup?,
       msgUserNameValidation: msgUserNameValidation == freezed
           ? _value.msgUserNameValidation
           : msgUserNameValidation // ignore: cast_nullable_to_non_nullable
@@ -129,18 +168,23 @@ class __$UserSetupInputValidationCopyWithImpl<$Res>
 
 class _$_UserSetupInputValidation implements _UserSetupInputValidation {
   const _$_UserSetupInputValidation(
-      {this.usersname, this.gender, this.msgUserNameValidation});
+      {this.usersname,
+      this.gender,
+      this.genderSelection,
+      this.msgUserNameValidation});
 
   @override
   final String? usersname;
   @override
   final bool? gender;
   @override
+  final GenderSetup? genderSelection;
+  @override
   final String? msgUserNameValidation;
 
   @override
   String toString() {
-    return 'UserSetupInputValidation(usersname: $usersname, gender: $gender, msgUserNameValidation: $msgUserNameValidation)';
+    return 'UserSetupInputValidation(usersname: $usersname, gender: $gender, genderSelection: $genderSelection, msgUserNameValidation: $msgUserNameValidation)';
   }
 
   @override
@@ -152,6 +196,9 @@ class _$_UserSetupInputValidation implements _UserSetupInputValidation {
                     .equals(other.usersname, usersname)) &&
             (identical(other.gender, gender) ||
                 const DeepCollectionEquality().equals(other.gender, gender)) &&
+            (identical(other.genderSelection, genderSelection) ||
+                const DeepCollectionEquality()
+                    .equals(other.genderSelection, genderSelection)) &&
             (identical(other.msgUserNameValidation, msgUserNameValidation) ||
                 const DeepCollectionEquality().equals(
                     other.msgUserNameValidation, msgUserNameValidation)));
@@ -162,6 +209,7 @@ class _$_UserSetupInputValidation implements _UserSetupInputValidation {
       runtimeType.hashCode ^
       const DeepCollectionEquality().hash(usersname) ^
       const DeepCollectionEquality().hash(gender) ^
+      const DeepCollectionEquality().hash(genderSelection) ^
       const DeepCollectionEquality().hash(msgUserNameValidation);
 
   @JsonKey(ignore: true)
@@ -175,12 +223,15 @@ abstract class _UserSetupInputValidation implements UserSetupInputValidation {
   const factory _UserSetupInputValidation(
       {String? usersname,
       bool? gender,
+      GenderSetup? genderSelection,
       String? msgUserNameValidation}) = _$_UserSetupInputValidation;
 
   @override
   String? get usersname => throw _privateConstructorUsedError;
   @override
   bool? get gender => throw _privateConstructorUsedError;
+  @override
+  GenderSetup? get genderSelection => throw _privateConstructorUsedError;
   @override
   String? get msgUserNameValidation => throw _privateConstructorUsedError;
   @override

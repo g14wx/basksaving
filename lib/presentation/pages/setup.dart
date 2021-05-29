@@ -8,7 +8,7 @@ class Setup extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => UserSetUpCubit(),
-      child: UserSetup(),
+      child: const UserSetup(),
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:basksaving/data/transistent_models/user_setup_input_validation.dart';
+import 'package:basksaving/presentation/pages/setup/month_setup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,17 +14,18 @@ class UserSetup extends StatefulWidget {
 
 class _UserSetupState extends State<UserSetup> {
   final formKey = GlobalKey<FormState>();
-
   final usersNameController = TextEditingController(text: '');
 
   @override
+  // ignore: must_call_super
   void initState() {
     usersNameController.addListener(_validateUserInput);
   }
 
   void _validateUserInput() {
-    context.read<UserSetUpCubit>().validateUsersName(
-        UserSetupInputValidation(usersname: usersNameController.value.text));
+    context
+        .read<UserSetUpCubit>()
+        .validateUsersName(usersNameController.value.text);
   }
 
   @override
@@ -33,14 +34,24 @@ class _UserSetupState extends State<UserSetup> {
       body: SingleChildScrollView(
         child: Form(
           key: formKey,
-          child: BlocBuilder<UserSetUpCubit, UserSetUpState>(
-            buildWhen: (previous, current) => current.maybeWhen(
-              emptyUserNameInput: (validation) {
-                return validation.msgUserNameValidation != null ||
-                    validation.msgUserNameValidation!.isNotEmpty;
-              },
-              orElse: () => true,
-            ),
+          child: BlocConsumer<UserSetUpCubit, UserSetUpState>(
+            listenWhen: (previous, current) => true,
+            listener: (context, state) {
+              state.maybeMap(
+                  formValidated: (value) {
+                    print("form validated");
+                    Navigator.push(context,
+                        MaterialPageRoute(
+                      builder: (context) => MonthSetup(),
+                      )
+                    );
+                  },
+                  invalidForm: (value) {
+                    const snackBar = SnackBar(content: Text('error some fields are need to proceed'));
+                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  },
+                  orElse: () => null);
+            },
             builder: (context, state) {
               return Column(
                 children: [
@@ -91,6 +102,7 @@ class _UserSetupState extends State<UserSetup> {
                               emptyUserNameInput: (value) {
                                 return value.validation.msgUserNameValidation;
                               },
+                              invalidForm:(value) => value.validation.msgUserNameValidation,
                               orElse: () => null)),
                     ),
                   ),
@@ -113,21 +125,55 @@ class _UserSetupState extends State<UserSetup> {
                     height: 10,
                   ),
                   GestureDetector(
-                      child: const Icon(
-                        Icons.person,
-                        size: 150,
-                      ),
+                      child: state.maybeMap(
+                          emptyUserNameInput: (value) {
+                            if (value.validation.genderSelection != null) {
+                              return value.validation.genderSelection!.map(
+                                  male: (value) =>
+                                      const Icon(Icons.male, size: 150),
+                                  female: (value) =>
+                                      const Icon(Icons.female, size: 150));
+                            } else {
+                              return genderInitialIcon();
+                            }
+                          },
+                          formValidated: (value) {
+                            if (value.validation.genderSelection != null) {
+                              return value.validation.genderSelection!.map(
+                                  male: (value) =>
+                                  const Icon(Icons.male, size: 150),
+                                  female: (value) =>
+                                  const Icon(Icons.female, size: 150));
+                            } else {
+                              return genderInitialIcon();
+                            }
+                          },
+                          invalidForm: (value) {
+                            if (value.validation.genderSelection != null) {
+                              return value.validation.genderSelection!.map(
+                                  male: (value) =>
+                                  const Icon(Icons.male, size: 150),
+                                  female: (value) =>
+                                  const Icon(Icons.female, size: 150));
+                            } else {
+                              return genderInitialIcon();
+                            }
+                          },
+                          subEmitForUpdatingInValidating: (value) {
+                            if (value.validation.genderSelection != null) {
+                              return value.validation.genderSelection!.map(
+                                  male: (value) =>
+                                  const Icon(Icons.male, size: 150),
+                                  female: (value) =>
+                                  const Icon(Icons.female, size: 150));
+                            } else {
+                              return genderInitialIcon();
+                            }
+                          },
+                          orElse: () => genderInitialIcon()),
                       onTap: () {
                         final userSetUpCubit = context.read<UserSetUpCubit>();
-                        state.map(
-                            userSetUpInitial: (value) => userSetUpCubit
-                                .validateUsersName(UserSetupInputValidation(
-                                    usersname: usersNameController.value.text,
-                                    gender: null)),
-                            emptyUserNameInput: (value) => {
-                                  userSetUpCubit
-                                      .validateGender(value.validation)
-                                });
+                        userSetUpCubit.validateGender();
                       }),
                   Text(
                     '( Click to change gender )',
@@ -160,6 +206,13 @@ class _UserSetupState extends State<UserSetup> {
           ),
         ),
       ),
+    );
+  }
+
+  Icon genderInitialIcon() {
+    return const Icon(
+      Icons.person,
+      size: 150,
     );
   }
 

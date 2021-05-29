@@ -1,3 +1,4 @@
+import 'package:basksaving/data/transistent_models/gender_setup.dart';
 import 'package:basksaving/data/transistent_models/user_setup_input_validation.dart';
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -8,24 +9,35 @@ part 'user_set_up_state.dart';
 part 'user_set_up_cubit.freezed.dart';
 
 class UserSetUpCubit extends Cubit<UserSetUpState> {
-  UserSetUpCubit() : super(const UserSetUpInitial());
+  UserSetUpCubit() : super(const UserSetUpInitial(UserSetupInputValidation()));
 
-  void validateUsersName(UserSetupInputValidation validation){
-        emit(EmptyUserNameInput(validation.copyWith(msgUserNameValidation: validation.usersname!.isNotEmpty ? null : 'Err must be 1 letter',usersname: validation.usersname!.isNotEmpty ? validation.usersname : '')));
-  }
-
-  void validateGender(UserSetupInputValidation validation){
-    bool newGender = true;
-    if (validation.gender != null && validation.gender == false) {
-        newGender = true;
-    }else if(validation.gender != null && validation.gender == true){
-        newGender = false;
+  void validateUsersName(String username){
+    String? msg;
+    if (username.isEmpty ) {
+      msg = 'Error, 1 character at least';
     }
-      emit(EmptyUserNameInput(validation.copyWith(gender: newGender)));
+    emit(UserSetUpState.emptyUserNameInput(state.validation.copyWith(usersname:username,msgUserNameValidation: msg)));
   }
 
-  void validateForm(){
+  void validateGender(){
+    print("validating");
+    bool gender = true;
+    if (state.validation.gender != null && state.validation.gender == false) {
+      gender = true;
+    }else if (state.validation.gender != null && state.validation.gender == true) {
+      gender = false;
+    }
+      emit(UserSetUpState.emptyUserNameInput(state.validation.copyWith(gender: gender,genderSelection: gender ? const GenderSetup.female() : const GenderSetup.male())));
+  }
 
+  void validateForm()async{
+    if (state.validation.usersname == null || state.validation.usersname!.isEmpty) {
+      emit(UserSetUpState.subEmitForUpdatingInValidating(state.validation));
+      emit(UserSetUpState.invalidForm(state.validation.copyWith(msgUserNameValidation: 'Error, 1 character at least')));
+    }else{
+      emit(UserSetUpState.subEmitForUpdatingInValidating(state.validation));
+      emit(UserSetUpState.formValidated(state.validation));
+    }
   }
 
 }
